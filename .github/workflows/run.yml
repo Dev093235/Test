@@ -1,6 +1,36 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm install
+
+    # --- Gemini API Key Test Step ---
+    # यह स्टेप GitHub Actions वातावरण से सीधे Gemini API Key को टेस्ट करेगा।
+    # लॉग्स में देखें कि क्या यह 'successful' होता है या कोई 'error' दिखाता है।
     - name: Test Gemini API Key Connection
       env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # यह GitHub Secret से आपकी API Key लेगा
       run: |
         echo "Attempting to connect to Google Gemini API with provided key..."
         curl -X POST -H "Content-Type: application/json" \
@@ -16,3 +46,11 @@
              --fail --silent --show-error
         
         echo "\nGemini API Test completed. Check the output above for response or error."
+    # --- Test Step End ---
+
+    - name: Start the bot
+      env:
+        PORT: 8080
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        YOUR_VOICERSS_API_KEY: ${{ secrets.YOUR_VOICERSS_API_KEY }}
+      run: npm start
