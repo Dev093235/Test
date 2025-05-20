@@ -1,7 +1,7 @@
 {
     "language": "en",
     "keyActive": "",
-    "DeveloperMode": false,
+    "DeveloperMode": true,
     "autoCreateDB": true,
     "notiGroup": true,
     "NOTIFICATION": true,
