@@ -42,7 +42,7 @@ jobs:
                      "temperature": 0.7
                  }
              }' \
-             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${{ env.GEMINI_API_KEY }}" \
+             "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${{ env.GEMINI_API_KEY }}" \
              --fail --silent --show-error
         
         echo "\nGemini API Test completed. Check the output above for response or error."
