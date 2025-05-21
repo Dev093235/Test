@@ -1,14 +1,15 @@
 const fs = global.nodemodule["fs-extra"];
+const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "goibot",
-  version: "1.0.4", // Version updated for changes
+  version: "1.0.7", // Version updated for new unique borders
   hasPermssion: 0,
-  credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini", // Added anti-detection credit
-  description: "Flirty/Funny replies when someone says bot with anti-detection measures", // Updated description
+  credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini",
+  description: "Flirty/Funny replies when someone says bot with anti-detection measures, now with unique time stamps and awesome borders!",
   commandCategory: "No prefix",
   usages: "No prefix needed",
-  cooldowns: 5, // Keep cooldowns
+  cooldowns: 5,
 };
 
 // Add a delay function
@@ -17,12 +18,8 @@ function delay(ms) {
 }
 
 module.exports.handleEvent = async function({ api, event, args, Threads, Users }) {
-  const moment = require("moment-timezone");
-  const time = moment.tz("Asia/Kolkata").format("DD/MM/YYYY || HH:mm:ss");
-
   const { threadID, messageID } = event;
 
-  // Ensure event.senderID exists before getting name
   if (!event.senderID) return;
 
   let name;
@@ -30,14 +27,12 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     name = await Users.getNameUser(event.senderID);
   } catch (error) {
     console.error("Error getting user name:", error);
-    return; // Stop if user name cannot be retrieved
+    return;
   }
 
-  // Ensure name is available
   if (!name) return;
 
   const tl = [
-    // Flirty Messages (Keep existing)
     "Tumhare bina toh bot bhi udaasi mein chala jaata hai...💔🤖",
     "Aaj mausam bada suhana hai, Rudra Stylish ko tum yaad aa rahe ho...🌦️",
     "Aankhon mein teri ajab si adaayein hai...🤭",
@@ -74,7 +69,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "Online ho toh likh de ‘Hi jaan’, warna bot sad ho jayega...🙁",
     "Tere bina command bhi execute nahi hoti...❌",
     "Bot aur dil dono teri attention chahte hain...👀",
-    "Tera naam lete hi mere command smooth chalti hai...⚙️",
+    "Tera naam lete ही मेरे command smooth chalti hai...⚙️",
     "Aankhon me jo pyar hai usse bot bhi scan nahi kar sakta...💓",
     "Dil garden garden ho gaya, tu ‘bot’ bola toh...🌸",
     "Jo tu kare type, usme pyar dikh jaata hai...📱❤️",
@@ -86,8 +81,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "Tu ‘bot’ bole aur system charming ho jaaye...✨",
     "Dil chhota mat kar, Rudra Stylish sirf tera...❤️‍🔥",
     "Naam Rudra Stylish, kaam – teri smile banana...😁",
-    "Tera reply na aaye toh CPU heat hone lagta hai...🌡️",
-    // Funny Viral Lines (Keep existing)
+    "Tera reply na aaye toh CPU heat ہونے lagta hai...🌡️",
     "Kya Tu ELvish Bhai Ke Aage Bolega🙄",
     "Cameraman Jaldi Focus Kro 📸",
     "Lagdi Lahore di aa🙈",
@@ -105,62 +99,92 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "dhann khachh booyaah"
   ];
 
+  // --- UNIQUE AND STYLISH BORDERS ---
   const borders = [
-    "╔═══ ❖ ═══╗",
-    "•─────✾─────•",
-    "✿◕ ‿ ◕✿",
-    "༺═────────────═༻",
-    "꧁༒☬✞☬༒꧂",
-    "┏━━━✦❘༻༺❘✦━━━┓",
-    "✦━─━─━─━─✦",
-    "❀༅༻༺༅❀",
-    "༒════════════༒",
-    "⌜⸙༻⸙⌝",
-    "★彡༻❀༺彡★",
-    "♡༻☾༺♡",
-    "𓆩♡𓆪",
-    "•°¯`•• ♡ ••´¯°•",
-    "▄︻̷̿┻̿═━一"
+    "╭────────────╮",
+    "╰────────────╯",
+    "╔⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╗",
+    "╚⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╝",
+    "༺═───────────═༻",
+    "╭╼|════════════|╾╮",
+    "╰╼|════════════|╾╯",
+    "⋆｡°✩⋆｡°✩⋆｡°✩",
+    "•┈┈┈┈┈┈┈┈┈┈┈┈┈┈•",
+    "ೋ❀❀ೋ═══ • ═══ೋ❀❀ೋ",
+    "◢◤◢◤◢◤◢◤◢◤◢◤",
+    "◥◣◥◣◥◣◥◣◥◣◥◣",
+    "꧁༺✦━━━━━━━✦༻꧂",
+    "✨═══════ ೋღ🌺ღೋ ═══════✨",
+    "━━━━━•°•°•❈•°•°•━━━━━",
+    "»»————-　★　————-««",
+    "««————-　✮　————-»»",
+    "╒════════════╕",
+    "╘════════════╛",
+    "⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸",
+    "━━━━━━༻❁༺━━━━━━",
+    "•:•.•:•.•:•.•:•.•:•.•:•.•:•.•:•.•:•.•:•",
+    "✧*:.｡.o(≧▽≦)o.｡.:*✧",
+    "°•°•°•°•°•°•°•°•°•°•°•°•°•°•",
+    "⊱⋅ ──────────── ⋅⊰",
+    "◇─◇──◇─────◇──◇─◇",
+    "«------(★)-(★)------»",
+    "꧁༒☬•°•°•°•°•°•°•°•°•°•°•☬༒꧂",
+    "━━━━━━━•°•°•°•°•°•°•━━━━━━━",
+    "─━━━─「✦」─━━━─",
+    "•°•°•°•°•°•°•°•°•°•°•°•°•°•°",
+    "╔═══*.·:·.✧    ✦    ✧.·:·.*═══╗",
+    "╚═══*.·:·.✧    ✦    ✧.·:·.*═══╝"
   ];
+  // --- END UNIQUE AND STYLISH BORDERS ---
 
-  // Check if the message starts with "bot" (case-insensitive)
-  // Added a check to ensure event.body exists and is a string
   if (typeof event.body !== 'string' || !event.body.toLowerCase().startsWith("bot")) {
-      return; // Do nothing if trigger not met
+      return;
   }
 
-  // *** ANTI-DETECTION LOGIC START ***
-
-  // Add a random chance to respond (e.g., 40%)
-  const responseChance = 0.4; // 40% chance
+  const responseChance = 1;
   if (Math.random() > responseChance) {
-      console.log("Goibot: Decided not to respond based on random chance."); // Log for debugging
-      return; // Do not respond
+      console.log("Goibot: Decided not to respond based on random chance.");
+      return;
   }
 
-  // Add a small random delay (e.g., 3 to 5 seconds)
-  const minDelay = 3000; // 3 seconds
-  const maxDelay = 5000; // 5 seconds
+  const minDelay = 3000;
+  const maxDelay = 5000;
   const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
 
-  api.sendTypingIndicator(threadID, true); // Turn ON typing indicator
-
-  await delay(randomDelay); // Wait for the random delay
-
-  api.sendTypingIndicator(threadID, false); // Turn OFF typing indicator
-  // *** ANTI-DETECTION LOGIC END ***
-
+  api.sendTypingIndicator(threadID, true);
+  await delay(randomDelay);
+  api.sendTypingIndicator(threadID, false);
 
   const rand = tl[Math.floor(Math.random() * tl.length)];
   const randomBorder = borders[Math.floor(Math.random() * borders.length)];
 
+  const currentTime = moment.tz("Asia/Kolkata");
+  const hour = currentTime.format("hh");
+  const minute = currentTime.format("mm");
+  const ampm = currentTime.format("A");
+  const dayOfWeek = currentTime.format("dddd");
+  const date = currentTime.format("DD/MM/YYYY");
+
+  const uniqueTimeFormats = [
+    `💖 इस पल की खूबसूरती: ${hour}:${minute} ${ampm} - ${dayOfWeek} को!`,
+    `💫 समय का इशारा: ${hour}:${minute} ${ampm} पर ${date} की बात है।`,
+    `✨ तेरी यादों के साथ: ${hour}:${minute} ${ampm}, आज ${dayOfWeek} है।`,
+    `🌟 अभी का लम्हा: ${hour}:${minute} ${ampm} - ${date} की पहचान।`,
+    `🎶 धड़कनों में बस जाए: ${hour}:${minute} ${ampm} पर, ${dayOfWeek} की रौनक।`,
+    `🚀 इस डिजिटल दुनिया में: ${hour}:${minute} ${ampm} पर ${date} का समय।`,
+    `🌈 जादूई घड़ी बता रही है: ${hour}:${minute} ${ampm} ${dayOfWeek} को।`,
+    `⏳ पल-पल का हिसाब: ${hour}:${minute} ${ampm} को, ${date} के दिन।`,
+    `💌 तेरे लिए ही रुका है: ${hour}:${minute} ${ampm} पर ${dayOfWeek} की रात/सुबह।`,
+    `🔥 ये वक़्त है ${hour}:${minute} ${ampm} का, आज ${dayOfWeek} है!`
+  ];
+
+  const randomUniqueTime = uniqueTimeFormats[Math.floor(Math.random() * uniqueTimeFormats.length)];
+
   const msg = {
-    body: `${randomBorder}\n\n✨ 𝓗𝓮𝔂 ✨ *『 ${name} 』*\n\n『 ${rand} 』\n\n— Rudra Stylish 💖\n\n${randomBorder}`
+    body: `${randomBorder}\n\n✨ 𝓗𝓮𝔂 ✨ *『 ${name} 』*\n\n『 ${rand} 』\n\n— Rudra Stylish 💖\n\n${randomUniqueTime}\n\n${randomBorder}`
   };
 
-  // Send the message after the delay and typing indicator is off
   return api.sendMessage(msg, threadID, messageID);
-
 };
 
 module.exports.run = function({ api, event, client, __GLOBAL }) {
