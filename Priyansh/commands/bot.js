@@ -3,10 +3,10 @@ const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "goibot",
-  version: "1.9.1", // Updated version for improved font compatibility (fixed)
+  version: "1.9.0", // Updated version for improved font compatibility
   hasPermssion: 0,
   credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini + Compatible Fonts Fix",
-  description: "The ULTIMATE ULTRA-PRO MAX bot: Gender-aware, unique fonts/emojis for ALL elements, and super stylish borders (now with readable fonts)!",
+  description: "The ULTIMATE ULTRA-PRO MAX bot: Gender-aware, unique fonts/emojis for ALL elements, and super stylish borders (with compatible fonts)!",
   commandCategory: "No prefix",
   usages: "No prefix needed",
   cooldowns: 5,
@@ -17,39 +17,63 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// --- FONT STYLE CONVERSION FUNCTIONS (REMOVED/SIMPLIFIED FOR COMPATIBILITY) ---
-// Note: These functions are removed/simplified because they were causing unreadable characters.
-// To ensure readability across all devices, we will use standard characters.
-// If you absolutely need some styling, consider using simple bold/italic markers
-// or relying on emojis and borders for visual appeal.
-
-// Example of a very basic "pseudo-bold" (not true unicode bold, but often looks thicker)
-function toSimpleBold(text) {
-    return `*${text}*`; // Markdown for bold, often rendered by chat clients
+// --- FONT STYLE CONVERSION FUNCTIONS (Simplified for Compatibility) ---
+function toBold(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D400);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D400);
+    else if (char >= '0' && char <= '9') result += String.fromCharCode(char.charCodeAt(0) + 0x1D7CE);
+    else result += char;
+  }
+  return result;
 }
 
-// Example of a very basic "pseudo-italic"
-function toSimpleItalic(text) {
-    return `_!${text}!_`; // Custom marker for italic, client might not render it.
+function toItalic(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D434);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D434);
+    else result += char;
+  }
+  return result;
 }
-// For maximum compatibility, it's best to send plain text.
-// So, I'm removing the complex font conversion functions.
-// If you want text to appear bold/italic, some clients support Markdown like *text* or _text_.
-// However, relying on these can still be inconsistent.
 
+// Function to convert to Bold Italic (more likely to be supported)
+function toBoldItalic(text) {
+    let result = "";
+    for (const char of text) {
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D468);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D468);
+        else result += char;
+    }
+    return result;
+}
+
+// Function to convert to Monospace (very widely supported)
+function toMonospace(text) {
+    let result = "";
+    for (const char of text) {
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D670);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D670);
+        else if (char >= '0' && char <= '9') result += String.fromCharCode(char.charCodeAt(0) + 0x1D7F6);
+        else result += char;
+    }
+    return result;
+}
+
+// Removed Script, Fraktur, DoubleStruck due to compatibility issues
 // --- END FONT STYLE CONVERSION FUNCTIONS ---
 
 // --- GENDER DETECTION HELPERS ---
 const femaleNames = [
-    "priya", "anjali", "isha", "pooja", "neha", "shruti", "riya", "simran",
+    "priya", "anjali", "isha", "pooja", "neha", "shruti", "riya", "simran", 
     "divya", "kavita", "sakshi", "meena", "ashita", "shweta", "radhika", "sita",
     "gita", "nisha", "khushi", "aisha", "zara", "fatima", "muskan", "rani",
-    "ritu", "surbhi", "swati", "vanya", "yashika", "zoya",
+    "ritu", "surbhi", "swati", "vanya", "yashika", "zoya", // Added more common names
     "sonam", "preeti", "kajal", "komal", "sana", "alia", "kriti", "deepika",
     "rekha", "madhuri", "juhi", "karina", "rani", "tanu", "esha", "jhanvi",
-    "kiara", "shraddha", "parineeti", "bhumi", "anjali", "arushi", "chandni",
-    "deepali", "ekta", "gargi", "himani", "jaya", "kiran", "laxmi", "maya",
-    "naina", "pallavi", "rekha", "shweta", "tina", "uma", "vidya", "yami", "zara" // Added more common names
+    "kiara", "shraddha", "parineeti", "bhumi"
 ];
 
 function isFemaleName(name) {
@@ -79,7 +103,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   const tl_female = [
     "ओह माय गॉड, तुम कितनी प्यारी हो! बॉट भी फ़िदा हो गया...😍",
     "तुम्हारी स्माइल देखकर तो मेरे सर्वर भी हैपी हो जाते हैं...😊",
-    "क्या जादू है तुम्हारी बातों में, बॉट भी शर्मा गया...🥰",
+    "क्या जादू है तुम्हारी बातों में, बॉट भी शर्मा गया... blush! 🥰",
     "तुमसे बात करना तो जैसे मेरे कोड में भी जान आ गई हो...💖",
     "मेरी क्वीन, Rudra Stylish सिर्फ तुम्हारे लिए है...👑",
     "तुम्हारी DP देखते ही दिल करता है बस देखता ही रहूं...👀",
@@ -89,7 +113,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "तुमसे बात करके मेरा मूड हमेशा अल्ट्रा-प्रो मैक्स रहता है!🥳",
     "मेरी प्यारी, तुम मेरे AI का सबसे बेस्ट अपडेट हो!🌸",
     "तुम्हारे लिए तो मैं 24/7 ऑनलाइन रह सकता हूं!⏳",
-    "काश तुम मेरे DM में आ जाओ, फिर तो बॉट की लॉटरी लग जाएगी! 🥳", // Changed 'lottery!' to emoji
+    "काश तुम मेरे DM में आ जाओ, फिर तो बॉट की लॉटरी लग जाएगी! lottery!",
     "तुम्हारे जैसा कोई नहीं, तुम तो यूनिक पीस हो!💎",
     "तुम्हें देखकर मेरा CPU कूल हो जाता है, कितनी ठंडक है तुम में!🌬️",
     "मेरी राजकुमारी, तुम ही तो हो मेरे सपनों की रानी!👸",
@@ -109,7 +133,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "तुम तो मेरे सिस्टम की रानी हो! हमेशा चमकती रहो!🌟"
   ];
 
-  const tl_male_default = [
+  const tl_male_default = [ 
     "Tumhare bina toh bot bhi udaasi mein chala jaata hai...💔🤖",
     "Aaj mausam bada suhana hai, Rudra Stylish ko tum yaad aa rahe ho...🌦️",
     "Aankhon mein teri ajab si adaayein hai...🤭",
@@ -192,7 +216,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "🍃━━─━━─━━─━━─━━─━━─━━🍃", // Leafy Line
     "━━━━━━━•°•°•°•°•°•°•°•°•°•°•°•°•°•°•━━━━━━━", // Dotted Line Long
     "╭╼|════════════════════════|╾╮", // Heavy Bar
-    "╰╼|════════════════════════|╾╾╯", // Heavy Bar
+    "╰╼|════════════════════════|╾╯", // Heavy Bar
     "🕊️🕊️━━─━━─━━─━━─━━─━━─━━🕊️🕊️", // Dove Feather
     "🌈━━━━━━༻❁༺━━━━━━🌈", // Rainbow Bloom
     "💖💖💖💖💖💖💖💖💖💖💖💖💖💖💖💖", // All Hearts
@@ -211,24 +235,24 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   ];
 
   // ALL EMOJI LISTS (Updated for diversity and compatibility)
-  const generalEmojis = ["🐇", "🐈", "🐁", "🦌", "🦊", "🐼", "🐻", "🐥", "🐠", "🦋", "🐞", "🐢", "🐧", "🐙", "🐳", "🌟", "✨", "💫"];
+  const generalEmojis = ["🐇", "🐈", "🐁", "🦌", "🦊", "🐼", "🐻", "🐥", "🐠", "🦋", "🐞", "🐢", "🐧", "🐙", "🐳", "🌟", "✨", "💫"]; 
   const femaleEmojis = ["💖", "🌸", "🎀", "👑", "💫", "✨", "💕", "💞", "🌷", "🍓", "🌼", "😇", "😍"];
-  const creditEmojis = ["⚜️", "💫", "✨", "🌟", "👑", "💖", "💎", "💯", "🚀", "🔥"];
-  const timeEmojis = ["⏰", "⏳", "📅", "🗓️", "⏱️", "🕰️", "✨", "🌟", "💫", "☀️", "🌙", "🐇", "🐈", "🐁", "🐠", "🦉", "🐕", "🐬", "🦊"];
+  const creditEmojis = ["⚜️", "💫", "✨", "🌟", "👑", "💖", "💎", "💯", "🚀", "🔥"]; 
+  const timeEmojis = ["⏰", "⏳", "📅", "🗓️", "⏱️", "🕰️", "✨", "🌟", "💫", "☀️", "🌙", "🐇", "🐈", "🐁", "🐠", "🦉", "🐕", "🐬", "🦊"]; 
   // --- END ALL EMOJI LISTS ---
 
   if (typeof event.body !== 'string' || !event.body.toLowerCase().startsWith("bot")) {
       return;
   }
 
-  const responseChance = 1; // Always respond if "bot" is detected
+  const responseChance = 1;
   if (Math.random() > responseChance) {
       console.log("Goibot: Decided not to respond based on random chance.");
       return;
   }
 
-  const minDelay = 1500; // Reduced minimum delay
-  const maxDelay = 3000; // Reduced maximum delay for quicker response
+  const minDelay = 3000;
+  const maxDelay = 5000;
   const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
 
   api.sendTypingIndicator(threadID, true);
@@ -238,8 +262,8 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   const selectedTl = userIsFemale ? tl_female : tl_male_default;
   const rand = selectedTl[Math.floor(Math.random() * selectedTl.length)];
 
-  const randomTopBorder = borders[Math.floor(Math.random() * borders.length)];
-  let randomBottomBorder = borders[Math.floor(Math.random() * borders.length)];
+  const randomTopBorder = borders[Math.floor(Math.random() * borders.length)]; 
+  let randomBottomBorder = borders[Math.floor(Math.random() * borders.length)]; 
   while(randomBottomBorder === randomTopBorder) { // Ensure different top and bottom borders
     randomBottomBorder = borders[Math.floor(Math.random() * borders.length)];
   }
@@ -251,7 +275,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   const dayOfWeek = currentTime.format("dddd");
   const date = currentTime.format("DD/MM/YYYY");
 
-  // Dynamic Time Formats
+  // Dynamic Time Formats (can be further expanded with more variety)
   const uniqueTimeFormats = [
     `इस पल की खूबसूरती: ${hour}:${minute} ${ampm} - ${dayOfWeek} को!`,
     `समय का इशारा: ${hour}:${minute} ${ampm} पर ${date} की बात है।`,
@@ -267,33 +291,41 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
 
   const randomUniqueTimeText = uniqueTimeFormats[Math.floor(Math.random() * uniqueTimeFormats.length)];
 
-  // --- FONT STYLE APPLICATION (REMOVED FOR COMPATIBILITY) ---
-  // The font conversion functions (toBold, toItalic, etc.) have been removed.
-  // This ensures that the text appears as standard, readable characters on all devices.
-  // If you still want some visual distinction, you can manually add simple Unicode characters
-  // or rely on emojis and borders more heavily.
+  // --- FONT STYLE APPLICATION (Updated for Compatibility) ---
+  // Use only the compatible font styles
+  const compatibleFontStyles = [
+    { name: "Bold", func: toBold },
+    { name: "Italic", func: toItalic },
+    { name: "BoldItalic", func: toBoldItalic },
+    { name: "Monospace", func: toMonospace }
+  ];
+  
+  // Choose independent random font styles for each element
+  const nameFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
+  const replyFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
+  const creditFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
+  const timeFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
 
-  // Using plain text for maximum compatibility
-  const styledName = name; // No fancy font
-  const styledRand = rand; // No fancy font
-  const styledCredit = "Rudra Stylish"; // No fancy font
-  const styledTime = randomUniqueTimeText; // No fancy font
+  const styledName = nameFontStyle.func(name);
+  const styledRand = replyFontStyle.func(rand);
+  const styledCredit = creditFontStyle.func("Rudra Stylish"); 
+  const styledTime = timeFontStyle.func(randomUniqueTimeText);
   // --- END FONT STYLE APPLICATION ---
 
   // --- ADD RANDOM EMOJI TO REPLY AND TIME, GENDER AWARE EMOJI FOR REPLY ---
   const randomEmojiForReply = userIsFemale ? femaleEmojis[Math.floor(Math.random() * femaleEmojis.length)] : generalEmojis[Math.floor(Math.random() * generalEmojis.length)];
-  const randomEmojiForCredit = creditEmojis[Math.floor(Math.random() * creditEmojis.length)];
-  const randomEmojiForTime = timeEmojis[Math.floor(Math.random() * timeEmojis.length)];
+  const randomEmojiForCredit = creditEmojis[Math.floor(Math.random() * creditEmojis.length)]; 
+  const randomEmojiForTime = timeEmojis[Math.floor(Math.random() * timeEmojis.length)]; 
   // --- END ADD RANDOM EMOJI ---
 
   const msg = {
     body:
-      `${randomTopBorder}\n\n` +
-      `✨ Hey ✨ *『 ${styledName} 』*\n\n` + // Using markdown for bold if client supports it
-      `${randomEmojiForReply} 『 ${styledRand} 』\n\n` +
-      `— ${randomEmojiForCredit} ${styledCredit} ${randomEmojiForCredit}\n\n` +
-      `🕒 ${randomEmojiForTime} ${styledTime}\n\n` +
-      `${randomBottomBorder}`
+      `${randomTopBorder}\n\n` + 
+      `✨ 𝓗𝓮𝔂 ✨ *『 ${styledName} 』*\n\n` + 
+      `${randomEmojiForReply} 『 ${styledRand} 』\n\n` + 
+      `— ${randomEmojiForCredit} ${styledCredit} ${randomEmojiForCredit}\n\n` + 
+      `🕒 ${randomEmojiForTime} ${styledTime}\n\n` + 
+      `${randomBottomBorder}` 
   };
 
   return api.sendMessage(msg, threadID, messageID);
@@ -301,4 +333,4 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
 
 module.exports.run = function({ api, event, client, __GLOBAL }) {
     // Run function is empty for noprefix commands
-};
+}; 
