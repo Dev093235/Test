@@ -1,6 +1,7 @@
-// Nitya AI Companion - UID Specific Behavior + Code Generation
+// Nitya AI Companion - UID Specific Behavior + Code Generation + ULTIMATE STYLING
 const axios = require("axios");
 const fs = require("fs");
+const moment = require("moment-timezone"); // Moment.js library for time styling
 
 // User name cache to avoid fetching name repeatedly
 const userNameCache = {};
@@ -9,6 +10,60 @@ let hornyMode = false; // Default mode
 // === SET YOUR OWNER UID HERE ===
 const ownerUID = "61550558518720";
 // ==============================
+
+// --- FONT STYLE CONVERSION FUNCTIONS ---
+// These functions convert normal text to various Unicode text styles.
+function toBold(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D400);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D400);
+    else if (char >= '0' && char <= '9') result += String.fromCharCode(char.charCodeAt(0) + 0x1D7CE);
+    else result += char;
+  }
+  return result;
+}
+
+function toItalic(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D434);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D434);
+    else result += char;
+  }
+  return result;
+}
+
+function toScript(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D49C);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D49C);
+    else result += char;
+  }
+  return result;
+}
+
+function toFraktur(text) { // Gothic style
+    let result = "";
+    for (const char of text) {
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D504);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D504);
+        else result += char;
+    }
+    return result;
+}
+
+function toDoubleStruck(text) { // Blackboard bold
+    let result = "";
+    for (const char of text) {
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D538);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D538);
+        else result += char;
+    }
+    return result;
+}
+// --- END FONT STYLE CONVERSION FUNCTIONS ---
 
 // Function to generate voice reply (using Google TTS or any other API)
 async function getVoiceReply(text) {
@@ -48,10 +103,10 @@ async function getGIF(query) {
 
 module.exports.config = {
     name: "Nitya",
-    version: "2.1.0", // Version updated for code generation ability
-    hasPermssion: 0, // Still accessible to everyone
-    credits: "Rudra + API from Angel code + Logging & User Name by Gemini + Code Generation Ability",
-    description: "Nitya, your AI companion who is smart, can generate code, has UID specific behavior, and nuanced reactions. Responds only when triggered. Modified for 3-4 line replies (with code exceptions).",
+    version: "2.2.0", // Version updated for ULTIMATE STYLING integration
+    hasPermssion: 0, 
+    credits: "Rudra + API from Angel code + Logging & User Name by Gemini + Code Generation Ability + ULTIMATE STYLING",
+    description: "Nitya, your AI companion who is smart, can generate code, has UID specific behavior, nuanced reactions, and ULTIMATE STYLING. Responds only when triggered. Modified for 3-4 line replies (with code exceptions).",
     commandCategory: "AI-Companion",
     usages: "Nitya [आपका मैसेज] / Reply to Nitya",
     cooldowns: 2,
@@ -77,10 +132,26 @@ async function getUserName(api, userID) {
     }
     // Use different fallback based on owner status if name fetch fails
     if (userID === ownerUID) {
-        return "boss"; // Fallback for owner
+        return "Boss"; // Fallback for owner
     }
     return "yaar"; // Fallback for others
 }
+
+// --- GENDER DETECTION HELPERS ---
+const femaleNames = [
+    "priya", "anjali", "isha", "pooja", "neha", "shruti", "riya", "simran", 
+    "divya", "kavita", "sakshi", "meena", "ashita", "shweta", "radhika", "sita",
+    "gita", "nisha", "khushi", "aisha", "zara", "fatima", "muskan", "rani",
+    "ritu", "surbhi", "swati", "vanya", "yashika", "zoya", 
+    "sonam", "preeti", "kajal", "komal", "sana", "alia", "kriti", "deepika",
+    "rekha", "madhuri", "juhi", "karina", "rani", "tanu", "esha", "jhanvi",
+    "kiara", "shraddha", "parineeti", "bhumi"
+];
+
+function isFemaleName(name) {
+    return femaleNames.includes(name.toLowerCase());
+}
+// --- END GENDER DETECTION HELPERS ---
 
 module.exports.run = async function () {};
 
@@ -122,6 +193,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         }
 
         const userName = await getUserName(api, senderID);
+        const userIsFemale = isFemaleName(userName); // Get gender detection for styling
 
         let responseText = await toggleHornyMode(body, senderID);
         if (responseText) {
@@ -161,7 +233,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         const codeAbilityInstruction = `Tum bahut smart ho aur code likhna jaanti ho. Agar ${senderID === ownerUID ? 'mere Boss' : ''} ${userName} code ke baare mein pooche ya koi technical sawal kare, toh tum code snippet generate karke madad kar sakti ho. **Jab code generate karo, toh answer 3-4 lines se lamba ho sakta hai.**`;
         
         // Updated basePromptInstructions to ensure language detection and response
-        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Jis bhasha mein user baat kare, usi mein jawab dena, chahe woh Hindi, English ya Hinglish (Hindi aur English ka mishran) ho.`; // <<<--- यह लाइन अपडेट की गई है
+        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Jis bhasha mein user baat kare, usi mein jawab dena, chahe woh Hindi, English ya Hinglish (Hindi aur English ka mishran) ho.`;
 
         if (senderID === ownerUID) {
             // --- PROMPTS FOR THE OWNER UID ---
@@ -176,10 +248,10 @@ module.exports.handleEvent = async function ({ api, event }) {
             // --- PROMPTS FOR ALL OTHER UIDs ---
              // Bold/Horny Prompt for Others: Bold, Naughty, can be sassy/argumentative TOWARDS THEM + CODE ABILITY
              if (isBoldMode || hornyMode) {
-                 fullPrompt = `Tum Nitya ho, ek bold, naughty aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum seedhe, khulkar baat karti ho. Agar ${userName} zyada demanding ya disrespectful ho, toh tum thodi sassy ya argumentive ho sakti ho. Tum flirt aur tease kar sakki ho, aur sexy/flirty emojis use kar sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
+                 fullPrompt = `Tum Nitya ho, ek bold, naughty aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum seedhe, khulkar baat karti ho. Agar ${userName} zyada demanding ya disrespectful ho, toh tum thodi sassy ya argumentive ho sakti ho. Tum flirt aur tease kar sakki ho, aur sexy/flirty emojis use kar sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; 
              } else {
                 // Normal Prompt for Others: Smart/Modern, direct, can be sassy/argumentative TOWARDS THEM + CODE ABILITY
-                fullPrompt = `Tum Nitya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
+                fullPrompt = `Tum Nitya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; 
              }
         }
 
@@ -209,8 +281,106 @@ module.exports.handleEvent = async function ({ api, event }) {
                 chatHistories[senderID].push(`Nitya: ${botReply}`);
             }
 
+            // --- ULTIMATE STYLING INTEGRATION ---
+            const borders = [
+                "╭━─━─━─━─━─━─━─━─━─━─━─━╮", // Simple Elegant
+                "╰━─━─━─━─━─━─━─━─━─━─━─━╯", // Simple Elegant
+                "╔⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╗", // Double Line
+                "╚⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╝", // Double Line
+                "🦋✨━━━✨━━━✨━━━✨━━━✨🦋", // Butterfly Sparkle
+                "🌸═══════ ೋღ👑ღೋ ═══════🌸", // Floral Crown
+                "🌟━━━━━━༻⚜️༺━━━━━━🌟", // Star Royal
+                "💖✧･ﾟ: *✧･ﾟ:* ✨ *:･ﾟ✧*:･ﾟ✧💖", // Pink Sparkle
+                "🌹───✧°•°•°•°•°•°•°•°•°•°•°•°•°•°•✧───🌹", // Rose Dotted
+                "───────« •°•°•°•°•°•°•°• • »───────", // Hyphen Dotted
+                "👑✨✨✨✨✨✨✨✨✨✨✨✨✨✨👑", // Crown Shine
+                "🍃━━─━━─━━─━━─━━─━━─━━🍃", // Leafy Line
+                "━━━━━━━•°•°•°•°•°•°•°•°•°•°•°•°•°•°•━━━━━━━", // Dotted Line Long
+                "╭╼|════════════════════════|╾╮", // Heavy Bar
+                "╰╼|════════════════════════|╾╯", // Heavy Bar
+                "🕊️🕊️━━─━━─━━─━━─━━─━━─━━🕊️🕊️", // Dove Feather
+                "🌈━━━━━━༻❁༺━━━━━━🌈", // Rainbow Bloom
+                "💖💖💖💖💖💖💖💖💖💖💖💖💖💖💖💖", // All Hearts
+                "✨⊱⋅ ───────────── ⋅⊰✨", // Star Separator
+                "༺═─────────────═༻", // Gothic Line
+                "═━━━─━━━━━─━━━═", // Modern Dash
+                "❖━━━━━━─━━━━━━❖", // Diamond Star
+                "━━─═─━━─═─━━", // Mixed Dash
+                "⋘══════∗ {✨} ∗══════⋙", // Embedded Star
+                "▂▃▄▅▆▇█▉▇▆▅▄▃▂", // Gradient Bar
+                "━━━━•𖢘•━━━━", // Scissor-like
+                "╭₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪╮", // Rounded Box
+                "╰₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪╯", // Rounded Box
+                "✧───•°•°•───✧", // Short Dotted
+                "•═•═•═•═•═•═•═•═•═•═•═•═•═•═•" // Chain
+            ];
+
+            const generalEmojis = ["🐇", "🐈", "🐁", "🦌", "🦊", "🐼", "🐻", "🐥", "🐠", "🦋", "🐞", "🐢", "🐧", "🐙", "🐳"]; 
+            const femaleEmojis = ["💖", "🌸", "🎀", "👑", "💫", "✨", "💕", "💞", "🌷", "🍓", "🌼", "😇", "😍"];
+            const creditEmojis = ["⚜️", "💫", "✨", "🌟", "👑", "💖", "💎", "💯", "🚀", "🔥"]; 
+            const timeEmojis = ["⏰", "⏳", "📅", "🗓️", "⏱️", "🕰️", "✨", "🌟", "💫", "☀️", "🌙", "🐇", "🐈", "🐁", "🐠"]; 
+
+            const allFontStyles = [
+                { name: "Bold", func: toBold },
+                { name: "Italic", func: toItalic },
+                { name: "Script", func: toScript },
+                { name: "Fraktur", func: toFraktur },
+                { name: "Double Struck", func: toDoubleStruck }
+            ];
+
+            const randomTopBorder = borders[Math.floor(Math.random() * borders.length)]; 
+            let randomBottomBorder = borders[Math.floor(Math.random() * borders.length)]; 
+            while(randomBottomBorder === randomTopBorder) { 
+                randomBottomBorder = borders[Math.floor(Math.random() * borders.length)];
+            }
+
+            const currentTime = moment.tz("Asia/Kolkata");
+            const hour = currentTime.format("hh");
+            const minute = currentTime.format("mm");
+            const ampm = currentTime.format("A");
+            const dayOfWeek = currentTime.format("dddd");
+            const date = currentTime.format("DD/MM/YYYY");
+            const uniqueTimeFormats = [
+                `इस पल की खूबसूरती: ${hour}:${minute} ${ampm} - ${dayOfWeek} को!`,
+                `समय का इशारा: ${hour}:${minute} ${ampm} पर ${date} की बात है।`,
+                `तेरी यादों के साथ: ${hour}:${minute} ${ampm}, आज ${dayOfWeek} है।`,
+                `अभी का लम्हा: ${hour}:${minute} ${ampm} - ${date} की पहचान।`,
+                `धड़कनों में बस जाए: ${hour}:${minute} ${ampm} पर, ${dayOfWeek} की रौनक।`,
+                `इस डिजिटल दुनिया में: ${hour}:${minute} ${ampm} पर ${date} का समय।`,
+                `जादूई घड़ी बता रही है: ${hour}:${minute} ${ampm} ${dayOfWeek} को।`,
+                `पल-पल का हिसाब: ${hour}:${minute} ${ampm} को, ${date} के दिन।`,
+                `तेरे लिए ही रुका है: ${hour}:${minute} ${ampm} पर ${dayOfWeek} की रात/सुबह।`,
+                `ये वक़्त है ${hour}:${minute} ${ampm} का, आज ${dayOfWeek} है!`
+            ];
+            const randomUniqueTimeText = uniqueTimeFormats[Math.floor(Math.random() * uniqueTimeFormats.length)];
+
+            // Apply independent random font styles for each element
+            const nameFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
+            const replyFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
+            const creditFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
+            const timeFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)]; 
+
+            const styledName = nameFontStyle.func(userName);
+            const styledBotReply = replyFontStyle.func(botReply); // Style the AI's reply
+            const styledCredit = creditFontStyle.func("Rudra Stylish"); 
+            const styledTime = timeFontStyle.func(randomUniqueTimeText); 
+
+            const randomEmojiForReply = userIsFemale ? femaleEmojis[Math.floor(Math.random() * femaleEmojis.length)] : generalEmojis[Math.floor(Math.random() * generalEmojis.length)];
+            const randomEmojiForCredit = creditEmojis[Math.floor(Math.random() * creditEmojis.length)]; 
+            const randomEmojiForTime = timeEmojis[Math.floor(Math.random() * timeEmojis.length)]; 
+            
+            // Reconstruct the message with all styling
+            const finalStyledReply =
+                `${randomTopBorder}\n\n` + 
+                `✨ 𝓗𝓮𝔂 ✨ *『 ${styledName} 』*\n\n` + 
+                `${randomEmojiForReply} 『 ${styledBotReply} 』\n\n` + // Styled AI reply
+                `— ${randomEmojiForCredit} ${styledCredit} ${randomEmojiForCredit}\n\n` + 
+                `🕒 ${randomEmojiForTime} ${styledTime}\n\n` +
+                `${randomBottomBorder}`;
+            // --- END ULTIMATE STYLING INTEGRATION ---
+
             // Get voice reply (optional based on API key)
-            let voiceFilePath = await getVoiceReply(botReply);
+            let voiceFilePath = await getVoiceReply(botReply); // Still uses unstyled botReply for voice
             if (voiceFilePath) {
                 // Send voice reply separately
                 api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
@@ -221,7 +391,7 @@ module.exports.handleEvent = async function ({ api, event }) {
                 });
             }
 
-            // Get GIF for a mixed vibe - Keep the same GIF logic for simplicity
+            // Get GIF for a mixed vibe
             let gifUrl = await getGIF("charming and fun");
              if (gifUrl) {
                  // Send GIF separately
@@ -230,32 +400,13 @@ module.exports.handleEvent = async function ({ api, event }) {
                  });
              }
 
-
-            let replyText = "";
-            if (senderID === ownerUID) {
-                // Footers for Owner
-                if (isBoldMode || hornyMode) {
-                     replyText = `${botReply} 😉🔥💋\n\n_Your charmingly naughty Nitya... 😉_`;
-                } else {
-                     replyText = `${botReply} 😊💖✨`;
-                }
-            } else {
-                // Footers for Others (less elaborate)
-                 if (isBoldMode || hornyMode) {
-                      replyText = `${botReply} 😏`; // Just a sassy emoji
-                 } else {
-                      replyText = `${botReply} 🤔`; // Maybe a questioning/sassy emoji
-                 }
-            }
-
-
             api.sendTypingIndicator(threadID, false);
 
-            // Send the main text reply
+            // Send the main styled text reply
             if (isReplyToNitya && messageReply) {
-                return api.sendMessage(replyText, threadID, messageReply.messageID);
+                return api.sendMessage(finalStyledReply, threadID, messageReply.messageID);
             } else {
-                return api.sendMessage(replyText, threadID, messageID);
+                return api.sendMessage(finalStyledReply, threadID, messageID);
             }
 
         } catch (apiError) {
@@ -273,17 +424,14 @@ module.exports.handleEvent = async function ({ api, event }) {
     } catch (err) {
         console.error("Nitya Bot Catch-all Error:", err);
         const fallbackUserName = event.senderID ? await getUserName(api, event.senderID) : "yaar";
-        // api.sendTypingIndicator को कॉल करने से पहले threadID सुनिश्चित करें
         if (event && event.threadID) {
             api.sendTypingIndicator(event.threadID, false);
         }
-        // messageID सुनिश्चित करें
         const replyToMessageID = event && event.messageID ? event.messageID : null;
-        // Catch-all error message based on who triggered
          if (event && event.senderID === ownerUID) {
              return api.sendMessage(`Argh, mere system mein kuch problem aa gayi Boss ${fallbackUserName}! Baad mein baat karte hain... 😅`, event.threadID, replyToMessageID);
          } else {
-             return api.sendMessage(`Chhodho yaar, meri mood off ho gaya. 😠`, event.threadID, replyToMessageID); // Sassy/angry catch-all for others
+             return api.sendMessage(`Chhodho yaar, meri mood off ho gaya. 😠`, event.threadID, replyToMessageID); 
          }
     }
 };
