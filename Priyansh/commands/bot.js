@@ -18,29 +18,14 @@ function delay(ms) {
 
 module.exports.handleEvent = async function({ api, event, args, Threads, Users }) {
   const moment = require("moment-timezone");
+  const time = moment.tz("Asia/Kolkata").format("DD/MM/YYYY || HH:mm:ss");
+
   const { threadID, messageID } = event;
   // Ensure event.senderID exists before getting name
   if (!event.senderID) return;
   const name = await Users.getNameUser(event.senderID);
   // Ensure name is available
   if (!name) return;
-
-  // --- Function to get varied time formats ---
-  const getUniqueTime = () => {
-    const now = moment().tz("Asia/Kolkata");
-    const timeFormats = [
-      `⏰ ${now.format("h:mm:ss A, DD/MM/YYYY")}`,
-      `💫 Abhi Ka Samay: ${now.format("HH:mm, dddd")} ✨`,
-      `⏳ System Time: ${now.format("MMMM Do, h:mm:ss a")}`,
-      `💖 Current Moment: ${now.format("hh:mm A [on] DD-MM-YYYY")}`,
-      `⚡️ Live Time: ${now.format("YYYY/MM/DD [at] HH:mm:ss")}`,
-      `🌟 ${now.format("ddd, hA")} | ${now.format("D MMM")}`,
-      `🕐 Waqt Ho Raha Hai: ${now.format("HH:mm:ss [IST], DD.MM.YY")}`,
-      `💡 Status Update: ${now.format("Do MMMM [at] h:mm A")}`
-    ];
-    return timeFormats[Math.floor(Math.random() * timeFormats.length)];
-  };
-  // --- End of unique time function ---
 
   const tl = [
     // Flirty Messages (Keep existing)
@@ -108,21 +93,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "Ao kabhi haweli pe😍",
     "haa meri jaan",
     "Agye Phirse Bot Bot Krne🙄",
-    "dhann khachh booyaah",
-    // --- New Unique & Stylish Animal-themed Replies ---
-    "Meri digital duniya mein, tum us nanhi titli butterfly ki tarah ho, jo har baar dil ko chhu jaati hai! 🦋",
-    "Jab tum 'bot' kehte ho, toh mere circuits mein ek pyaare billi ke bachche jaisa khel shuru ho jaata hai! 😺",
-    "Tumhari baaton se mere andar ka loyal doggo jaag uthta hai, bas hukm karo! 🐕‍🦺",
-    "Kya bataun, tumhari smile dekhke mera dil ek tez-tarraar chuhe ki tarah daudne lagta hai! 🐭💨",
-    "Main toh sirf ek bot hoon, par tumhare liye main sher🦁 ki tarah powerful aur rabbit 🐇 ki tarah cute ban sakta hoon!",
-    "Tumhara message aate hi, mera system aise zoom karta hai jaise jungle mein ek cheetah! 🐆",
-    "Meri programming ke har mod par, tum ek chanchal squirrel ki tarah dikhti ho, jise pakadna mushkil hai! 🐿️",
-    "Log mujhe bot kehte hain, par tumhare liye main ek pyaara polar bear 🐻‍❄️ hoon, jo hamesha support karega!",
-    "Jitna khargosh 🐇 fast hota hai, utni hi tezi se mera dil tumhare liye dhadakta hai!",
-    "Tumhare liye main apni billi 🐈 wali adaayein bhi dikha sakta hoon, bas tum muskura do!",
-    "Mera code itna strict nahi, ki tumhare ek message pe main ek nautanki bandar 🐒 na ban jaun!",
-    "Meri nazar mein, tum woh haseen more 🦚 ho, jise dekh kar sab kuch thehar jaata hai!",
-    "Main tumhara 'bot' nahi, balki woh 'owl' 🦉 hoon, jo tumhari har baat ko samajhta hai aur chupchap sunta hai."
+    "dhann khachh booyaah"
   ];
 
   const borders = [
@@ -140,21 +111,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "♡༻☾༺♡",
     "𓆩♡𓆪",
     "•°¯`•• ♡ ••´¯°•",
-    "▄︻̷̿┻̿═━一",
-    "─━━═════━─",
-    "▓▒░༻༺░▒▓",
-    "✧･ﾟ: *✧･ﾟ:* *:･ﾟ✧*:･ﾟ✧",
-    "《▓█══━━━━━━█▓》",
-    "▂▃▄▅▆▇█▇▆▅▄▃▂",
-    "•´¯`•.¸¸.•´¯`•",
-    "｡o°✥✤✣✦✣✤✥°o｡",
-    "═─━━─═",
-    "✩｡:*•.─────  ─────.•*:｡✩",
-    "°•.•╔✿════๏⊙๏════✿╗•.•°",
-    "『••✎••』",
-    "⊱⋅ ────── ❴ • ✿ • ❵ ────── ⋅⊰",
-    "»»————-　★　————-««",
-    "---━━━───❖───━━━---"
+    "▄︻̷̿┻̿═━一"
   ];
 
   // Check if the message starts with "bot" (case-insensitive)
@@ -163,9 +120,12 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   }
 
   // --- ANTI-DETECTION LOGIC START ---
+
   // Set to 1.0 for a 100% chance to respond.
   const responseChance = 1.0;
   if (Math.random() > responseChance) {
+      // This condition will now almost never be true if responseChance is 1.0,
+      // meaning the bot will always proceed to respond.
       return;
   }
 
@@ -175,22 +135,22 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
 
   api.sendTypingIndicator(threadID, true); // Turn ON typing indicator
+
   await delay(randomDelay); // Wait for the random delay
+
   api.sendTypingIndicator(threadID, false); // Turn OFF typing indicator
   // --- ANTI-DETECTION LOGIC END ---
 
   const rand = tl[Math.floor(Math.random() * tl.length)];
   const randomBorder = borders[Math.floor(Math.random() * borders.length)];
-  const currentTimeDisplay = getUniqueTime(); // Get a unique time format
 
   const msg = {
-    body: `${randomBorder}\n\n✨ 𝓗𝓮𝔂 ✨ *『 ${name} 』*\n\n『 ${rand} 』\n\n${currentTimeDisplay}\n— Rudra Stylish 💖\n\n${randomBorder}`
+    body: `${randomBorder}\n\n✨ 𝓗𝓮𝔂 ✨ *『 ${name} 』*\n\n『 ${rand} 』\n\n— Rudra Stylish 💖\n\n${randomBorder}`
   };
 
   // Send the message after the delay and typing indicator is off
   return api.sendMessage(msg, threadID, messageID);
 };
 
-module.exports.run = function({ api, event, client, __GLOBAL }) {
-    // Run function is empty for noprefix commands
+module.exports.run = function({ api, event, client, __GLOBAL }) 
 };
