@@ -11,7 +11,7 @@ const ownerUID = "61550558518720"; // <-- Apne asli UID se badalna na bhulein!
 
 // Voice reply generate karne ka function (VoiceRSS API use karke)
 async function getVoiceReply(text) {
-    const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_VOICERSS_API_KEY&hl=hi-in&src=${encodeURIComponent(text)}`; // <-- Apni VoiceRSS key yahan daalein!
+    const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_API_KEY&hl=hi-in&src=${encodeURIComponent(text)}`; // <-- Apni VoiceRSS key yahan daalein!
     try {
         const response = await axios.get(voiceApiUrl, { responseType: 'arraybuffer' });
         const audioData = response.data;
@@ -48,7 +48,6 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
 
     try {
         console.log("DEBUG: Calling genAI.getGenerativeModel...");
-        // मॉडल का नाम gemini-1.0-pro से gemini-1.0-pro-001 में बदला गया है
         const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro-001", systemInstruction: systemPromptContent });
         console.log("DEBUG: Model fetched. Calling chat.sendMessage...");
 
@@ -86,6 +85,9 @@ module.exports.config = {
 };
 
 const chatHistories = {};
+// AI_API_URL को अपडेट किया गया है
+const AI_API_URL = "https://geminiw.onrender.com/chat";
+
 
 async function getUserName(api, userID) {
     if (userNameCache[userID]) {
@@ -207,16 +209,6 @@ module.exports.handleEvent = async function ({ api, event }) {
                 botReply = `${userName}, main abhi AI mode mein nahi hoon. Kuch simple pucho.`;
             }
             chatHistories[senderID].pop();
-        }
-
-        let voiceFilePath = await getVoiceReply(botReply);
-        if (voiceFilePath) {
-            api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
-                if (err) console.error("Voice message bhejane mein error aaya:", err);
-                if (fs.existsSync(voiceFilePath)) {
-                    fs.unlinkSync(voiceFilePath);
-                }
-            });
         }
 
         let replyText = botReply;
