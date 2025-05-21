@@ -13,9 +13,6 @@ const ownerUID = "61550558518720"; // <-- Apne asli UID se badalna na bhulein!
 
 // Voice reply generate karne ka function (VoiceRSS API use karke)
 async function getVoiceReply(text) {
-    // IMPORTANT: VoiceRSS API Key ko yahan apne asli key se badalna na bhulein!
-    // Agar aap VoiceRSS use kar rahe hain toh apni key daalein, warna yeh line blank chhodein.
-    // 'hl=hi-in' Hindi-India ke liye hai. Agar aapko language detection voice mein bhi chahiye toh VoiceRSS documentation check karein.
     const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_VOICERSS_API_KEY&hl=hi-in&src=${encodeURIComponent(text)}`; // <-- Apni VoiceRSS key yahan daalein!
     try {
         const response = await axios.get(voiceApiUrl, { responseType: 'arraybuffer' });
@@ -31,7 +28,7 @@ async function getVoiceReply(text) {
 
 // Giphy API se GIF lene ka function
 async function getGIF(query) {
-    const giphyApiKey = "dc6zaTOxFJmzC";  // Giphy ki public API key (limited usage)
+    const giphyApiKey = "dc6zaTOxFJmzC";
     const giphyUrl = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=1`;
     try {
         const response = await axios.get(giphyUrl);
@@ -49,9 +46,12 @@ async function getGIF(query) {
 
 // Google Gemini AI से response lene ka function (Ab complex prompting aur Hinglish handle karta hai)
 async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyMode, api) {
-    // GenAI client ko yahan initialize karen, agar abhi tak nahi hua hai
+    console.log("DEBUG: getAIResponse function mein pravesh.");
     let genAI;
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // Key ko har call par fetch karen
+    // const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // <<<--- इस लाइन को हटा दें या कमेंट कर दें
+
+    const GEMINI_API_KEY = "AIzaSyDEjHbxMDw8xSlA2Zd7YiWNhKQTEu8jVDA"; // <<<--- YAHAN APNI ASLI KEY DAALEIN
+
 
     if (!GEMINI_API_KEY) {
         console.warn("GEMINI_API_KEY environment variable set nahi hai. Google Gemini AI available nahi hoga.");
@@ -60,15 +60,14 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
 
     try {
         genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        // console.log("Google Gemini AI client successfully initialize ho gaya."); // Logging ko yahan se hata sakte hain
+        console.log("DEBUG: Google Gemini AI client successfully initialize ho gaya.");
     } catch (error) {
-        console.error("Google Gemini AI client initialize karne mein error aaya:", error);
+        console.error("DEBUG: Google Gemini AI client initialize karne mein error aaya:", error);
         return null;
     }
 
     let systemPromptContent = "";
     const codeAbilityInstruction = `Tum bahut smart ho aur code likhna jaanti ho. Agar ${senderID === ownerUID ? 'mere Boss' : ''} ${userName} code ke baare mein pooche ya koi technical sawal kare, toh tum code snippet generate karke madad kar sakti ho. Jab code generate karo, toh answer 3-4 lines se lamba ho sakta hai.`;
-    // Hinglish support ke liye yeh line adjust ki gayi hai:
     const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai). Jis bhasha mein user baat kare, usi mein jawab dena, chahe woh Hindi, English ya Hinglish (Hindi aur English ka mishran) ho.`;
 
     if (senderID === ownerUID) {
@@ -87,7 +86,9 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+        console.log("DEBUG: Calling genAI.getGenerativeModel...");
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        console.log("DEBUG: Model fetched. Calling chat.sendMessage...");
         const chat = model.startChat({
             history: chatHistories[senderID].map(msg => {
                 if (msg.startsWith("User:")) return { role: "user", parts: [{ text: msg.substring(5).trim() }] };
@@ -101,16 +102,17 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
         });
 
         const result = await chat.sendMessage(userMessage);
+        console.log("DEBUG: chat.sendMessage successful. Getting response text...");
         const response = await result.response;
         return response.text();
     } catch (error) {
-        console.error("Google Gemini AI response lene mein error aaya:", error);
+        console.error("DEBUG: Google Gemini AI response lene mein error aaya:", error);
         return null;
     }
 }
 
 module.exports.config = {
-    name: "nitya", // <--- यहाँ कमांड का नाम 'nitya' है
+    name: "nitya",
     version: "2.1.0",
     hasPermssion: 0,
     credits: "Rudra + API from Angel code + Advanced Prompting & History by Gemini",
@@ -212,9 +214,8 @@ module.exports.handleEvent = async function ({ api, event }) {
         const isBoldMode = boldTriggerWords.some(word => userMessage.toLowerCase().includes(word));
 
         let botReply = "";
-        // GenAI client ko yahan initialize karen, agar abhi tak nahi hua hai
-        // Note: genAI को सीधे `getAIResponse` में पास करने की बजाय, अब वह वहां खुद ही इनिशियलाइज़ होगा।
         if (userMessage) {
+            console.log("DEBUG: Calling getAIResponse with user message.");
             const aiResponse = await getAIResponse(userMessage, senderID, userName, isBoldMode, hornyMode, api);
             if (aiResponse) {
                 botReply = aiResponse;
@@ -235,6 +236,7 @@ module.exports.handleEvent = async function ({ api, event }) {
                 }
 
             } else {
+                console.log("DEBUG: getAIResponse returned null or undefined.");
                 if (senderID === ownerUID) {
                     botReply = `Boss ${userName}, Google Gemini AI abhi respond nahi kar pa raha hai. Kya aapko kuch aur chahiye?`;
                 } else {
@@ -242,7 +244,8 @@ module.exports.handleEvent = async function ({ api, event }) {
                 }
                  chatHistories[senderID].pop();
             }
-        } else { // यह else block तब चलेगा जब userMessage खाली होगा
+        } else {
+            console.log("DEBUG: userMessage is empty, providing static fallback.");
             if (senderID === ownerUID) {
                 botReply = `Boss ${userName}, Google Gemini AI abhi active nahi hai. Koi aur command try karo?`;
             } else {
@@ -250,7 +253,6 @@ module.exports.handleEvent = async function ({ api, event }) {
             }
             chatHistories[senderID].pop();
 
-            // Fallback replies for no userMessage
             if (userMessage.toLowerCase().includes("kaise ho")) {
                 botReply = "Main theek hoon, tum kaise ho?";
             } else if (userMessage.toLowerCase().includes("kya kar rahe ho")) {
