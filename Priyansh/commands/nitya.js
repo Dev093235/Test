@@ -9,6 +9,43 @@ let hornyMode = false; // Bot ka default mode
 const ownerUID = "61550558518720"; // <-- Apne asli UID se badalna na bhulein!
 // ==============================
 
+// Voice reply generate karne ka function (VoiceRSS API use karke)
+async function getVoiceReply(text) {
+    const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_VOICERSS_API_KEY&hl=hi-in&src=${encodeURIComponent(text)}`; // <-- Apni VoiceRSS key yahan daalein!
+    try {
+        const response = await axios.get(voiceApiUrl, { responseType: 'arraybuffer' });
+        const audioData = response.data;
+        const audioPath = './voice_reply.mp3';
+        fs.writeFileSync(audioPath, audioData);
+        return audioPath;
+    } catch (error) {
+        console.error("Voice reply generate karne mein error aaya:", error);
+        return null;
+    }
+}
+
+// Giphy API se GIF lene ka function
+// Note: Giphy API key ko abhi ke liye hata diya gaya hai, agar aapko GIF chahiye toh is function ko restore karein
+// aur apni Giphy API key daalein.
+/*
+async function getGIF(query) {
+    const giphyApiKey = "dc6zaTOxFJmzC"; // Giphy ki public API key (limited usage)
+    const giphyUrl = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=1`;
+    try {
+        const response = await axios.get(giphyUrl);
+        if (response.data && response.data.data && response.data.data.length > 0) {
+             return response.data.data[0]?.images?.original?.url;
+        } else {
+            console.log("Is query ke liye koi GIF nahi mila:", query);
+            return null;
+        }
+    } catch (error) {
+        console.error("GIF fetch karne mein error aaya:", error);
+        return null;
+    }
+}
+*/
+
 // Google Gemini AI से response lene ka function (Simplified Prompting)
 async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyMode, api) {
     console.log("DEBUG: getAIResponse function mein pravesh.");
@@ -33,7 +70,8 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
 
     try {
         console.log("DEBUG: Calling genAI.getGenerativeModel...");
-        const model = genAI.getGenerativeModel({ model: "gemini-pro", systemInstruction: systemPromptContent });
+        // मॉडल का नाम gemini-pro से gemini-1.0-pro में बदला गया है
+        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro", systemInstruction: systemPromptContent });
         console.log("DEBUG: Model fetched. Calling chat.sendMessage...");
 
         const chat = model.startChat({
@@ -194,6 +232,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         }
 
         // Voice reply और GIF भेजने वाला कोड हटा दिया गया है
+        // अगर आपको VoiceRSS चाहिए तो इस फंक्शन को restore करें और अपनी VoiceRSS API key डालें।
         // let voiceFilePath = await getVoiceReply(botReply);
         // if (voiceFilePath) {
         //     api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
@@ -204,6 +243,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         //     });
         // }
 
+        // अगर आपको GIF चाहिए तो इस फंक्शन को restore करें और अपनी Giphy API key डालें।
         // let gifUrl = await getGIF("charming and fun");
         // if (gifUrl) {
         //     api.sendMessage({ attachment: await axios.get(gifUrl, { responseType: 'stream' }).then(res => res.data) }, threadID, (err) => {
