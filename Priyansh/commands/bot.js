@@ -1,8 +1,8 @@
-Const fs = global.nodemodule["fs-extra"];
+const fs = global.nodemodule["fs-extra"];
 
 module.exports.config = {
   name: "goibot",
-  version: "1.0.3", // Version updated for changes
+  version: "1.0.4", // Version updated for changes
   hasPermssion: 0,
   credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini", // Added anti-detection credit
   description: "Flirty/Funny replies when someone says bot with anti-detection measures", // Updated description
@@ -21,12 +21,20 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   const time = moment.tz("Asia/Kolkata").format("DD/MM/YYYY || HH:mm:ss");
 
   const { threadID, messageID } = event;
+
   // Ensure event.senderID exists before getting name
   if (!event.senderID) return;
-  const name = await Users.getNameUser(event.senderID);
+
+  let name;
+  try {
+    name = await Users.getNameUser(event.senderID);
+  } catch (error) {
+    console.error("Error getting user name:", error);
+    return; // Stop if user name cannot be retrieved
+  }
+
   // Ensure name is available
   if (!name) return;
-
 
   const tl = [
     // Flirty Messages (Keep existing)
