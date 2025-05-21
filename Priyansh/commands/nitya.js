@@ -159,7 +159,9 @@ module.exports.handleEvent = async function ({ api, event }) {
         let fullPrompt = "";
         // Added instruction for code generation ability and line limit exception
         const codeAbilityInstruction = `Tum bahut smart ho aur code likhna jaanti ho. Agar ${senderID === ownerUID ? 'mere Boss' : ''} ${userName} code ke baare mein pooche ya koi technical sawal kare, toh tum code snippet generate karke madad kar sakti ho. **Jab code generate karo, toh answer 3-4 lines se lamba ho sakta hai.**`;
-        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**.`; // Updated line limit instruction
+        
+        // Updated basePromptInstructions to ensure language detection and response
+        const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Jis bhasha mein user baat kare, usi mein jawab dena, chahe woh Hindi, English ya Hinglish (Hindi aur English ka mishran) ho.`; // <<<--- यह लाइन अपडेट की गई है
 
         if (senderID === ownerUID) {
             // --- PROMPTS FOR THE OWNER UID ---
@@ -174,10 +176,10 @@ module.exports.handleEvent = async function ({ api, event }) {
             // --- PROMPTS FOR ALL OTHER UIDs ---
              // Bold/Horny Prompt for Others: Bold, Naughty, can be sassy/argumentative TOWARDS THEM + CODE ABILITY
              if (isBoldMode || hornyMode) {
-                 fullPrompt = `Tum Nitya ho, ek bold, naughty aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum seedhe, khulkar baat karti ho. Agar ${userName} zyada demanding ya disrespectful ho, toh tum thodi sassy ya argumentive ho sakti ho. Tum flirt aur tease kar sakki ho, aur sexy/flirty emojis use kar sakti ho. **Apne jawab seedhe, thode sassy ya challenging ho sakte hain, aur sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai).** Yeh conversation hai:\n`;
+                 fullPrompt = `Tum Nitya ho, ek bold, naughty aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum seedhe, khulkar baat karti ho. Agar ${userName} zyada demanding ya disrespectful ho, toh tum thodi sassy ya argumentive ho sakti ho. Tum flirt aur tease kar sakki ho, aur sexy/flirty emojis use kar sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
              } else {
                 // Normal Prompt for Others: Smart/Modern, direct, can be sassy/argumentative TOWARDS THEM + CODE ABILITY
-                fullPrompt = `Tum Nitya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum seedhe, khulkar baat karti ho. Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. **Apne jawab seedhe, thode sassy ya challenging ho sakte hain, aur sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai).** Yeh conversation hai:\n`;
+                fullPrompt = `Tum Nitya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
              }
         }
 
@@ -200,12 +202,6 @@ module.exports.handleEvent = async function ({ api, event }) {
                  }
                 chatHistories[senderID].pop(); // Remove the last user message if AI failed to reply properly
             } else {
-                 // Simple length check as AI might ignore 3-4 line instruction sometimes,
-                 // BUT we added exception for code, so maybe don't strictly truncate here?
-                 // Let's remove the strict truncation if AI generates code, but keep if it's just text and > 4 lines.
-                 // However, detecting if it's *only* code in text is hard.
-                 // Let's trust the AI to follow the 3-4 line rule UNLESS it thinks it needs to send code.
-                 // So, keeping the truncation check as a basic safeguard if AI goes completely off track.
                  const lines = botReply.split('\n').filter(line => line.trim() !== '');
                  if (lines.length > 4 && !botReply.includes('```')) { // Simple heuristic: truncate if >4 lines AND no code block marker
                      botReply = lines.slice(0, 4).join('\n') + '...';
