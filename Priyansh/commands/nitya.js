@@ -11,21 +11,6 @@ let hornyMode = false; // Bot ka default mode
 const ownerUID = "61550558518720"; // <-- Apne asli UID se badalna na bhulein!
 // ==============================
 
-// Google Gemini AI Configuration
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // Yeh key GitHub Secrets se aayegi
-
-let genAI = null;
-if (GEMINI_API_KEY) {
-    try {
-        genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        console.log("Google Gemini AI client successfully initialize ho gaya.");
-    } catch (error) {
-        console.error("Google Gemini AI client initialize karne mein error aaya:", error);
-    }
-} else {
-    console.warn("GEMINI_API_KEY environment variable set nahi hai. Google Gemini AI available nahi hoga.");
-}
-
 // Voice reply generate karne ka function (VoiceRSS API use karke)
 async function getVoiceReply(text) {
     // IMPORTANT: VoiceRSS API Key ko yahan apne asli key se badalna na bhulein!
@@ -64,8 +49,20 @@ async function getGIF(query) {
 
 // Google Gemini AI से response lene ka function (Ab complex prompting aur Hinglish handle karta hai)
 async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyMode, api) {
-    if (!genAI) {
-        console.warn("Google Gemini AI client initialize nahi hua hai ya API key missing hai.");
+    // GenAI client ko yahan initialize karen, agar abhi tak nahi hua hai
+    let genAI;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // Key ko har call par fetch karen
+
+    if (!GEMINI_API_KEY) {
+        console.warn("GEMINI_API_KEY environment variable set nahi hai. Google Gemini AI available nahi hoga.");
+        return null;
+    }
+
+    try {
+        genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        // console.log("Google Gemini AI client successfully initialize ho gaya."); // Logging ko yahan se hata sakte hain
+    } catch (error) {
+        console.error("Google Gemini AI client initialize karne mein error aaya:", error);
         return null;
     }
 
@@ -90,7 +87,7 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // <-- Yahan model ka naam badla gaya hai
+        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
         const chat = model.startChat({
             history: chatHistories[senderID].map(msg => {
                 if (msg.startsWith("User:")) return { role: "user", parts: [{ text: msg.substring(5).trim() }] };
@@ -215,7 +212,9 @@ module.exports.handleEvent = async function ({ api, event }) {
         const isBoldMode = boldTriggerWords.some(word => userMessage.toLowerCase().includes(word));
 
         let botReply = "";
-        if (genAI && userMessage) { // Changed from openai to genAI
+        // GenAI client ko yahan initialize karen, agar abhi tak nahi hua hai
+        // Note: genAI को सीधे `getAIResponse` में पास करने की बजाय, अब वह वहां खुद ही इनिशियलाइज़ होगा।
+        if (userMessage) {
             const aiResponse = await getAIResponse(userMessage, senderID, userName, isBoldMode, hornyMode, api);
             if (aiResponse) {
                 botReply = aiResponse;
@@ -243,7 +242,7 @@ module.exports.handleEvent = async function ({ api, event }) {
                 }
                  chatHistories[senderID].pop();
             }
-        } else {
+        } else { // यह else block तब चलेगा जब userMessage खाली होगा
             if (senderID === ownerUID) {
                 botReply = `Boss ${userName}, Google Gemini AI abhi active nahi hai. Koi aur command try karo?`;
             } else {
@@ -251,6 +250,7 @@ module.exports.handleEvent = async function ({ api, event }) {
             }
             chatHistories[senderID].pop();
 
+            // Fallback replies for no userMessage
             if (userMessage.toLowerCase().includes("kaise ho")) {
                 botReply = "Main theek hoon, tum kaise ho?";
             } else if (userMessage.toLowerCase().includes("kya kar rahe ho")) {
