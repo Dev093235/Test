@@ -90,7 +90,7 @@ async function getAIResponse(userMessage, senderID, userName, isBoldMode, hornyM
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // <-- Yahan model ka naam badla gaya hai
         const chat = model.startChat({
             history: chatHistories[senderID].map(msg => {
                 if (msg.startsWith("User:")) return { role: "user", parts: [{ text: msg.substring(5).trim() }] };
