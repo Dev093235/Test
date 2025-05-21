@@ -3,10 +3,10 @@ const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "goibot",
-  version: "1.8.0", // Final version: ULTIMATE ULTRA-PRO MAX with unique font/emoji for ALL elements & enhanced borders
+  version: "1.9.0", // Updated version for improved font compatibility
   hasPermssion: 0,
-  credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini",
-  description: "The ULTIMATE ULTRA-PRO MAX bot: Gender-aware, unique fonts/emojis for ALL elements, and super stylish borders!",
+  credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini + Compatible Fonts Fix",
+  description: "The ULTIMATE ULTRA-PRO MAX bot: Gender-aware, unique fonts/emojis for ALL elements, and super stylish borders (with compatible fonts)!",
   commandCategory: "No prefix",
   usages: "No prefix needed",
   cooldowns: 5,
@@ -17,8 +17,7 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// --- FONT STYLE CONVERSION FUNCTIONS ---
-// These functions convert normal text to various Unicode text styles.
+// --- FONT STYLE CONVERSION FUNCTIONS (Simplified for Compatibility) ---
 function toBold(text) {
   let result = "";
   for (const char of text) {
@@ -40,35 +39,30 @@ function toItalic(text) {
   return result;
 }
 
-function toScript(text) {
-  let result = "";
-  for (const char of text) {
-    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D49C);
-    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D49C);
-    else result += char;
-  }
-  return result;
-}
-
-function toFraktur(text) { // Gothic style
+// Function to convert to Bold Italic (more likely to be supported)
+function toBoldItalic(text) {
     let result = "";
     for (const char of text) {
-        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D504);
-        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D504);
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D468);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D468);
         else result += char;
     }
     return result;
 }
 
-function toDoubleStruck(text) { // Blackboard bold
+// Function to convert to Monospace (very widely supported)
+function toMonospace(text) {
     let result = "";
     for (const char of text) {
-        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D538);
-        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D538);
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D670);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D670);
+        else if (char >= '0' && char <= '9') result += String.fromCharCode(char.charCodeAt(0) + 0x1D7F6);
         else result += char;
     }
     return result;
 }
+
+// Removed Script, Fraktur, DoubleStruck due to compatibility issues
 // --- END FONT STYLE CONVERSION FUNCTIONS ---
 
 // --- GENDER DETECTION HELPERS ---
@@ -240,11 +234,11 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "•═•═•═•═•═•═•═•═•═•═•═•═•═•═•" // Chain
   ];
 
-  // ALL EMOJI LISTS
-  const generalEmojis = ["🐇", "🐈", "🐁", "🦌", "🦊", "🐼", "🐻", "🐥", "🐠", "🦋", "🐞", "🐢", "🐧", "🐙", "🐳"]; // Added more diverse animal/nature emojis
+  // ALL EMOJI LISTS (Updated for diversity and compatibility)
+  const generalEmojis = ["🐇", "🐈", "🐁", "🦌", "🦊", "🐼", "🐻", "🐥", "🐠", "🦋", "🐞", "🐢", "🐧", "🐙", "🐳", "🌟", "✨", "💫"]; 
   const femaleEmojis = ["💖", "🌸", "🎀", "👑", "💫", "✨", "💕", "💞", "🌷", "🍓", "🌼", "😇", "😍"];
-  const creditEmojis = ["⚜️", "💫", "✨", "🌟", "👑", "💖", "💎", "💯", "🚀", "🔥"]; // Added more powerful/shiny emojis for credit
-  const timeEmojis = ["⏰", "⏳", "📅", "🗓️", "⏱️", "🕰️", "✨", "🌟", "💫", "☀️", "🌙", "🐇", "🐈", "🐁", "🐠"]; // New for time, also includes your requested animal emojis
+  const creditEmojis = ["⚜️", "💫", "✨", "🌟", "👑", "💖", "💎", "💯", "🚀", "🔥"]; 
+  const timeEmojis = ["⏰", "⏳", "📅", "🗓️", "⏱️", "🕰️", "✨", "🌟", "💫", "☀️", "🌙", "🐇", "🐈", "🐁", "🐠", "🦉", "🐕", "🐬", "🦊"]; 
   // --- END ALL EMOJI LISTS ---
 
   if (typeof event.body !== 'string' || !event.body.toLowerCase().startsWith("bot")) {
@@ -297,40 +291,40 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
 
   const randomUniqueTimeText = uniqueTimeFormats[Math.floor(Math.random() * uniqueTimeFormats.length)];
 
-  // --- FONT STYLE APPLICATION ---
-  const allFontStyles = [
+  // --- FONT STYLE APPLICATION (Updated for Compatibility) ---
+  // Use only the compatible font styles
+  const compatibleFontStyles = [
     { name: "Bold", func: toBold },
     { name: "Italic", func: toItalic },
-    { name: "Script", func: toScript },
-    { name: "Fraktur", func: toFraktur },
-    { name: "Double Struck", func: toDoubleStruck }
+    { name: "BoldItalic", func: toBoldItalic },
+    { name: "Monospace", func: toMonospace }
   ];
   
   // Choose independent random font styles for each element
-  const nameFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
-  const replyFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
-  const creditFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
-  const timeFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)]; // New independent font for time
+  const nameFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
+  const replyFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
+  const creditFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
+  const timeFontStyle = compatibleFontStyles[Math.floor(Math.random() * compatibleFontStyles.length)];
 
   const styledName = nameFontStyle.func(name);
   const styledRand = replyFontStyle.func(rand);
   const styledCredit = creditFontStyle.func("Rudra Stylish"); 
-  const styledTime = timeFontStyle.func(randomUniqueTimeText); // Apply independent font to time
+  const styledTime = timeFontStyle.func(randomUniqueTimeText);
   // --- END FONT STYLE APPLICATION ---
 
   // --- ADD RANDOM EMOJI TO REPLY AND TIME, GENDER AWARE EMOJI FOR REPLY ---
   const randomEmojiForReply = userIsFemale ? femaleEmojis[Math.floor(Math.random() * femaleEmojis.length)] : generalEmojis[Math.floor(Math.random() * generalEmojis.length)];
   const randomEmojiForCredit = creditEmojis[Math.floor(Math.random() * creditEmojis.length)]; 
-  const randomEmojiForTime = timeEmojis[Math.floor(Math.random() * timeEmojis.length)]; // Use new timeEmojis list
+  const randomEmojiForTime = timeEmojis[Math.floor(Math.random() * timeEmojis.length)]; 
   // --- END ADD RANDOM EMOJI ---
 
   const msg = {
     body:
       `${randomTopBorder}\n\n` + 
-      `✨ 𝓗𝓮𝔂 ✨ *『 ${styledName} 』*\n\n` + // Name will have its own random font
-      `${randomEmojiForReply} 『 ${styledRand} 』\n\n` + // Reply will have its own random font & gender-aware emoji
-      `— ${randomEmojiForCredit} ${styledCredit} ${randomEmojiForCredit}\n\n` + // Credit will have its own random font & specific emoji
-      `🕒 ${randomEmojiForTime} ${styledTime}\n\n` + // Time will have its own random font & time-specific/animal emoji
+      `✨ 𝓗𝓮𝔂 ✨ *『 ${styledName} 』*\n\n` + 
+      `${randomEmojiForReply} 『 ${styledRand} 』\n\n` + 
+      `— ${randomEmojiForCredit} ${styledCredit} ${randomEmojiForCredit}\n\n` + 
+      `🕒 ${randomEmojiForTime} ${styledTime}\n\n` + 
       `${randomBottomBorder}` 
   };
 
