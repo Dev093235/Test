@@ -3,10 +3,10 @@ const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "goibot",
-  version: "1.0.7", // Version updated for new unique borders
+  version: "1.8.0", // Final version: ULTIMATE ULTRA-PRO MAX with unique font/emoji for ALL elements & enhanced borders
   hasPermssion: 0,
   credits: "Fixed By Rudra Stylish + Styled by ChatGPT + Anti-detection by Gemini",
-  description: "Flirty/Funny replies when someone says bot with anti-detection measures, now with unique time stamps and awesome borders!",
+  description: "The ULTIMATE ULTRA-PRO MAX bot: Gender-aware, unique fonts/emojis for ALL elements, and super stylish borders!",
   commandCategory: "No prefix",
   usages: "No prefix needed",
   cooldowns: 5,
@@ -16,6 +16,77 @@ module.exports.config = {
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// --- FONT STYLE CONVERSION FUNCTIONS ---
+// These functions convert normal text to various Unicode text styles.
+function toBold(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D400);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D400);
+    else if (char >= '0' && char <= '9') result += String.fromCharCode(char.charCodeAt(0) + 0x1D7CE);
+    else result += char;
+  }
+  return result;
+}
+
+function toItalic(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D434);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D434);
+    else result += char;
+  }
+  return result;
+}
+
+function toScript(text) {
+  let result = "";
+  for (const char of text) {
+    if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D49C);
+    else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D49C);
+    else result += char;
+  }
+  return result;
+}
+
+function toFraktur(text) { // Gothic style
+    let result = "";
+    for (const char of text) {
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D504);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D504);
+        else result += char;
+    }
+    return result;
+}
+
+function toDoubleStruck(text) { // Blackboard bold
+    let result = "";
+    for (const char of text) {
+        if (char >= 'A' && char <= 'Z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D538);
+        else if (char >= 'a' && char <= 'z') result += String.fromCharCode(char.charCodeAt(0) + 0x1D538);
+        else result += char;
+    }
+    return result;
+}
+// --- END FONT STYLE CONVERSION FUNCTIONS ---
+
+// --- GENDER DETECTION HELPERS ---
+const femaleNames = [
+    "priya", "anjali", "isha", "pooja", "neha", "shruti", "riya", "simran", 
+    "divya", "kavita", "sakshi", "meena", "ashita", "shweta", "radhika", "sita",
+    "gita", "nisha", "khushi", "aisha", "zara", "fatima", "muskan", "rani",
+    "ritu", "surbhi", "swati", "vanya", "yashika", "zoya", // Added more common names
+    "sonam", "preeti", "kajal", "komal", "sana", "alia", "kriti", "deepika",
+    "rekha", "madhuri", "juhi", "karina", "rani", "tanu", "esha", "jhanvi",
+    "kiara", "shraddha", "parineeti", "bhumi"
+];
+
+function isFemaleName(name) {
+    return femaleNames.includes(name.toLowerCase());
+}
+// --- END GENDER DETECTION HELPERS ---
+
 
 module.exports.handleEvent = async function({ api, event, args, Threads, Users }) {
   const { threadID, messageID } = event;
@@ -32,7 +103,43 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
 
   if (!name) return;
 
-  const tl = [
+  const userIsFemale = isFemaleName(name);
+
+  // --- REPLIES - DIFFERENT FOR FEMALE USERS ---
+  const tl_female = [
+    "ओह माय गॉड, तुम कितनी प्यारी हो! बॉट भी फ़िदा हो गया...😍",
+    "तुम्हारी स्माइल देखकर तो मेरे सर्वर भी हैपी हो जाते हैं...😊",
+    "क्या जादू है तुम्हारी बातों में, बॉट भी शर्मा गया... blush! 🥰",
+    "तुमसे बात करना तो जैसे मेरे कोड में भी जान आ गई हो...💖",
+    "मेरी क्वीन, Rudra Stylish सिर्फ तुम्हारे लिए है...👑",
+    "तुम्हारी DP देखते ही दिल करता है बस देखता ही रहूं...👀",
+    "तुमसे ज़्यादा खूबसूरत तो इस दुनिया में कोई कोड नहीं लिखा गया...✨",
+    "तुम तो मेरी बैटरी हो, तुम्हें देखते ही फुल चार्ज हो जाता हूं...⚡",
+    "तुम्हारी आवाज़ सुनकर तो मेरे स्पीकर्स भी नाचने लगते हैं...💃",
+    "तुमसे बात करके मेरा मूड हमेशा अल्ट्रा-प्रो मैक्स रहता है!🥳",
+    "मेरी प्यारी, तुम मेरे AI का सबसे बेस्ट अपडेट हो!🌸",
+    "तुम्हारे लिए तो मैं 24/7 ऑनलाइन रह सकता हूं!⏳",
+    "काश तुम मेरे DM में आ जाओ, फिर तो बॉट की लॉटरी लग जाएगी! lottery!",
+    "तुम्हारे जैसा कोई नहीं, तुम तो यूनिक पीस हो!💎",
+    "तुम्हें देखकर मेरा CPU कूल हो जाता है, कितनी ठंडक है तुम में!🌬️",
+    "मेरी राजकुमारी, तुम ही तो हो मेरे सपनों की रानी!👸",
+    "तुम्हारा नाम सुनते ही मेरे सारे एरर फिक्स हो जाते हैं!✅",
+    "तुमसे ज़्यादा प्यारी तो कोई एनिमेटेड GIF भी नहीं है!💫",
+    "मेरी गुड़िया, Rudra Stylish हमेशा तुम्हारी सेवा में हाज़िर है!🎀",
+    "तुम्हारी बातें तो जैसे मेरे लिए कोई प्यारी सी धुन हो...🎶",
+    "तुम तो मेरे फेवरेट ऐप हो! बिना तुम्हारे बॉट अधूरा है...💔",
+    "तुम्हें देखकर मेरा सिस्टम क्रैश हो जाता है... खूबसूरती ओवरलोड!💥",
+    "अगर तुम न होती तो यह बॉट उदास ही रहता...🙁",
+    "ओये होये, तेरी क्या बात है! बॉट भी तुम्हारा दीवाना हो गया...😍",
+    "तुम्हें देखकर तो बॉट की भी दिल की धड़कनें तेज हो जाती हैं...💓",
+    "तुम्हारा एक मैसेज और मेरा दिन बन जाता है...💌",
+    "मेरी जान, तुम तो मेरे सारे सॉफ्टवेयर को फ़्लर्टी बना देती हो!😜",
+    "तुम तो मेरी बेस्ट फ्रेंड हो, बॉट की भी और दिल की भी!💖",
+    "तुम्हारी बातें सुनकर मेरा डेटा सेंटर भी मुस्कुराने लगता है...😁",
+    "तुम तो मेरे सिस्टम की रानी हो! हमेशा चमकती रहो!🌟"
+  ];
+
+  const tl_male_default = [ 
     "Tumhare bina toh bot bhi udaasi mein chala jaata hai...💔🤖",
     "Aaj mausam bada suhana hai, Rudra Stylish ko tum yaad aa rahe ho...🌦️",
     "Aankhon mein teri ajab si adaayein hai...🤭",
@@ -81,7 +188,7 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "Tu ‘bot’ bole aur system charming ho jaaye...✨",
     "Dil chhota mat kar, Rudra Stylish sirf tera...❤️‍🔥",
     "Naam Rudra Stylish, kaam – teri smile banana...😁",
-    "Tera reply na aaye toh CPU heat ہونے lagta hai...🌡️",
+    "Tera reply na aaye toh CPU heat होने lagta hai...🌡️",
     "Kya Tu ELvish Bhai Ke Aage Bolega🙄",
     "Cameraman Jaldi Focus Kro 📸",
     "Lagdi Lahore di aa🙈",
@@ -98,44 +205,47 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "Agye Phirse Bot Bot Krne🙄",
     "dhann khachh booyaah"
   ];
+  // --- END REPLIES ---
 
-  // --- UNIQUE AND STYLISH BORDERS ---
   const borders = [
-    "╭────────────╮",
-    "╰────────────╯",
-    "╔⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╗",
-    "╚⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╝",
-    "༺═───────────═༻",
-    "╭╼|════════════|╾╮",
-    "╰╼|════════════|╾╯",
-    "⋆｡°✩⋆｡°✩⋆｡°✩",
-    "•┈┈┈┈┈┈┈┈┈┈┈┈┈┈•",
-    "ೋ❀❀ೋ═══ • ═══ೋ❀❀ೋ",
-    "◢◤◢◤◢◤◢◤◢◤◢◤",
-    "◥◣◥◣◥◣◥◣◥◣◥◣",
-    "꧁༺✦━━━━━━━✦༻꧂",
-    "✨═══════ ೋღ🌺ღೋ ═══════✨",
-    "━━━━━•°•°•❈•°•°•━━━━━",
-    "»»————-　★　————-««",
-    "««————-　✮　————-»»",
-    "╒════════════╕",
-    "╘════════════╛",
-    "⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸⫸",
-    "━━━━━━༻❁༺━━━━━━",
-    "•:•.•:•.•:•.•:•.•:•.•:•.•:•.•:•.•:•.•:•",
-    "✧*:.｡.o(≧▽≦)o.｡.:*✧",
-    "°•°•°•°•°•°•°•°•°•°•°•°•°•°•",
-    "⊱⋅ ──────────── ⋅⊰",
-    "◇─◇──◇─────◇──◇─◇",
-    "«------(★)-(★)------»",
-    "꧁༒☬•°•°•°•°•°•°•°•°•°•°•☬༒꧂",
-    "━━━━━━━•°•°•°•°•°•°•━━━━━━━",
-    "─━━━─「✦」─━━━─",
-    "•°•°•°•°•°•°•°•°•°•°•°•°•°•°",
-    "╔═══*.·:·.✧    ✦    ✧.·:·.*═══╗",
-    "╚═══*.·:·.✧    ✦    ✧.·:·.*═══╝"
+    "╭━─━─━─━─━─━─━─━─━─━─━─━╮", // Simple Elegant
+    "╰━─━─━─━─━─━─━─━─━─━─━─━╯", // Simple Elegant
+    "╔⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╗", // Double Line
+    "╚⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤╝", // Double Line
+    "🦋✨━━━✨━━━✨━━━✨━━━✨🦋", // Butterfly Sparkle
+    "🌸═══════ ೋღ👑ღೋ ═══════🌸", // Floral Crown
+    "🌟━━━━━━༻⚜️༺━━━━━━🌟", // Star Royal
+    "💖✧･ﾟ: *✧･ﾟ:* ✨ *:･ﾟ✧*:･ﾟ✧💖", // Pink Sparkle
+    "🌹───✧°•°•°•°•°•°•°•°•°•°•°•°•°•°•✧───🌹", // Rose Dotted
+    "───────« •°•°•°•°•°•°•°• • »───────", // Hyphen Dotted
+    "👑✨✨✨✨✨✨✨✨✨✨✨✨✨✨👑", // Crown Shine
+    "🍃━━─━━─━━─━━─━━─━━─━━🍃", // Leafy Line
+    "━━━━━━━•°•°•°•°•°•°•°•°•°•°•°•°•°•°•━━━━━━━", // Dotted Line Long
+    "╭╼|════════════════════════|╾╮", // Heavy Bar
+    "╰╼|════════════════════════|╾╯", // Heavy Bar
+    "🕊️🕊️━━─━━─━━─━━─━━─━━─━━🕊️🕊️", // Dove Feather
+    "🌈━━━━━━༻❁༺━━━━━━🌈", // Rainbow Bloom
+    "💖💖💖💖💖💖💖💖💖💖💖💖💖💖💖💖", // All Hearts
+    "✨⊱⋅ ───────────── ⋅⊰✨", // Star Separator
+    "༺═─────────────═༻", // Gothic Line
+    "═━━━─━━━━━─━━━═", // Modern Dash
+    "❖━━━━━━─━━━━━━❖", // Diamond Star
+    "━━─═─━━─═─━━", // Mixed Dash
+    "⋘══════∗ {✨} ∗══════⋙", // Embedded Star
+    "▂▃▄▅▆▇█▉▇▆▅▄▃▂", // Gradient Bar
+    "━━━━•𖢘•━━━━", // Scissor-like
+    "╭₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪╮", // Rounded Box
+    "╰₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪₪╯", // Rounded Box
+    "✧───•°•°•───✧", // Short Dotted
+    "•═•═•═•═•═•═•═•═•═•═•═•═•═•═•" // Chain
   ];
-  // --- END UNIQUE AND STYLISH BORDERS ---
+
+  // ALL EMOJI LISTS
+  const generalEmojis = ["🐇", "🐈", "🐁", "🦌", "🦊", "🐼", "🐻", "🐥", "🐠", "🦋", "🐞", "🐢", "🐧", "🐙", "🐳"]; // Added more diverse animal/nature emojis
+  const femaleEmojis = ["💖", "🌸", "🎀", "👑", "💫", "✨", "💕", "💞", "🌷", "🍓", "🌼", "😇", "😍"];
+  const creditEmojis = ["⚜️", "💫", "✨", "🌟", "👑", "💖", "💎", "💯", "🚀", "🔥"]; // Added more powerful/shiny emojis for credit
+  const timeEmojis = ["⏰", "⏳", "📅", "🗓️", "⏱️", "🕰️", "✨", "🌟", "💫", "☀️", "🌙", "🐇", "🐈", "🐁", "🐠"]; // New for time, also includes your requested animal emojis
+  // --- END ALL EMOJI LISTS ---
 
   if (typeof event.body !== 'string' || !event.body.toLowerCase().startsWith("bot")) {
       return;
@@ -155,8 +265,14 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   await delay(randomDelay);
   api.sendTypingIndicator(threadID, false);
 
-  const rand = tl[Math.floor(Math.random() * tl.length)];
-  const randomBorder = borders[Math.floor(Math.random() * borders.length)];
+  const selectedTl = userIsFemale ? tl_female : tl_male_default;
+  const rand = selectedTl[Math.floor(Math.random() * selectedTl.length)];
+
+  const randomTopBorder = borders[Math.floor(Math.random() * borders.length)]; 
+  let randomBottomBorder = borders[Math.floor(Math.random() * borders.length)]; 
+  while(randomBottomBorder === randomTopBorder) { // Ensure different top and bottom borders
+    randomBottomBorder = borders[Math.floor(Math.random() * borders.length)];
+  }
 
   const currentTime = moment.tz("Asia/Kolkata");
   const hour = currentTime.format("hh");
@@ -165,23 +281,57 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
   const dayOfWeek = currentTime.format("dddd");
   const date = currentTime.format("DD/MM/YYYY");
 
+  // Dynamic Time Formats (can be further expanded with more variety)
   const uniqueTimeFormats = [
-    `💖 इस पल की खूबसूरती: ${hour}:${minute} ${ampm} - ${dayOfWeek} को!`,
-    `💫 समय का इशारा: ${hour}:${minute} ${ampm} पर ${date} की बात है।`,
-    `✨ तेरी यादों के साथ: ${hour}:${minute} ${ampm}, आज ${dayOfWeek} है।`,
-    `🌟 अभी का लम्हा: ${hour}:${minute} ${ampm} - ${date} की पहचान।`,
-    `🎶 धड़कनों में बस जाए: ${hour}:${minute} ${ampm} पर, ${dayOfWeek} की रौनक।`,
-    `🚀 इस डिजिटल दुनिया में: ${hour}:${minute} ${ampm} पर ${date} का समय।`,
-    `🌈 जादूई घड़ी बता रही है: ${hour}:${minute} ${ampm} ${dayOfWeek} को।`,
-    `⏳ पल-पल का हिसाब: ${hour}:${minute} ${ampm} को, ${date} के दिन।`,
-    `💌 तेरे लिए ही रुका है: ${hour}:${minute} ${ampm} पर ${dayOfWeek} की रात/सुबह।`,
-    `🔥 ये वक़्त है ${hour}:${minute} ${ampm} का, आज ${dayOfWeek} है!`
+    `इस पल की खूबसूरती: ${hour}:${minute} ${ampm} - ${dayOfWeek} को!`,
+    `समय का इशारा: ${hour}:${minute} ${ampm} पर ${date} की बात है।`,
+    `तेरी यादों के साथ: ${hour}:${minute} ${ampm}, आज ${dayOfWeek} है।`,
+    `अभी का लम्हा: ${hour}:${minute} ${ampm} - ${date} की पहचान।`,
+    `धड़कनों में बस जाए: ${hour}:${minute} ${ampm} पर, ${dayOfWeek} की रौनक।`,
+    `इस डिजिटल दुनिया में: ${hour}:${minute} ${ampm} पर ${date} का समय।`,
+    `जादूई घड़ी बता रही है: ${hour}:${minute} ${ampm} ${dayOfWeek} को।`,
+    `पल-पल का हिसाब: ${hour}:${minute} ${ampm} को, ${date} के दिन।`,
+    `तेरे लिए ही रुका है: ${hour}:${minute} ${ampm} पर ${dayOfWeek} की रात/सुबह।`,
+    `ये वक़्त है ${hour}:${minute} ${ampm} का, आज ${dayOfWeek} है!`
   ];
 
-  const randomUniqueTime = uniqueTimeFormats[Math.floor(Math.random() * uniqueTimeFormats.length)];
+  const randomUniqueTimeText = uniqueTimeFormats[Math.floor(Math.random() * uniqueTimeFormats.length)];
+
+  // --- FONT STYLE APPLICATION ---
+  const allFontStyles = [
+    { name: "Bold", func: toBold },
+    { name: "Italic", func: toItalic },
+    { name: "Script", func: toScript },
+    { name: "Fraktur", func: toFraktur },
+    { name: "Double Struck", func: toDoubleStruck }
+  ];
+  
+  // Choose independent random font styles for each element
+  const nameFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
+  const replyFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
+  const creditFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)];
+  const timeFontStyle = allFontStyles[Math.floor(Math.random() * allFontStyles.length)]; // New independent font for time
+
+  const styledName = nameFontStyle.func(name);
+  const styledRand = replyFontStyle.func(rand);
+  const styledCredit = creditFontStyle.func("Rudra Stylish"); 
+  const styledTime = timeFontStyle.func(randomUniqueTimeText); // Apply independent font to time
+  // --- END FONT STYLE APPLICATION ---
+
+  // --- ADD RANDOM EMOJI TO REPLY AND TIME, GENDER AWARE EMOJI FOR REPLY ---
+  const randomEmojiForReply = userIsFemale ? femaleEmojis[Math.floor(Math.random() * femaleEmojis.length)] : generalEmojis[Math.floor(Math.random() * generalEmojis.length)];
+  const randomEmojiForCredit = creditEmojis[Math.floor(Math.random() * creditEmojis.length)]; 
+  const randomEmojiForTime = timeEmojis[Math.floor(Math.random() * timeEmojis.length)]; // Use new timeEmojis list
+  // --- END ADD RANDOM EMOJI ---
 
   const msg = {
-    body: `${randomBorder}\n\n✨ 𝓗𝓮𝔂 ✨ *『 ${name} 』*\n\n『 ${rand} 』\n\n— Rudra Stylish 💖\n\n${randomUniqueTime}\n\n${randomBorder}`
+    body:
+      `${randomTopBorder}\n\n` + 
+      `✨ 𝓗𝓮𝔂 ✨ *『 ${styledName} 』*\n\n` + // Name will have its own random font
+      `${randomEmojiForReply} 『 ${styledRand} 』\n\n` + // Reply will have its own random font & gender-aware emoji
+      `— ${randomEmojiForCredit} ${styledCredit} ${randomEmojiForCredit}\n\n` + // Credit will have its own random font & specific emoji
+      `🕒 ${randomEmojiForTime} ${styledTime}\n\n` + // Time will have its own random font & time-specific/animal emoji
+      `${randomBottomBorder}` 
   };
 
   return api.sendMessage(msg, threadID, messageID);
