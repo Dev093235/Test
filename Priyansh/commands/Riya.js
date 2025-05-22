@@ -1,12 +1,6 @@
-// Riya AI Companion - UID Specific Behavior + Code Generation + Song Sending
+// Riya AI Companion - UID Specific Behavior + Code Generation
 const axios = require("axios");
 const fs = require("fs");
-const ytdl = require("ytdl-core");
-const { downloadFBVideo } = require("priyansh-fb-downloader");
-const { downloadIGVideo } = require("priyansh-ig-downloader");
-const scdl = require("soundcloud-downloader");
-const yts = require('yt-search');
-
 
 // User name cache to avoid fetching name repeatedly
 const userNameCache = {};
@@ -19,12 +13,14 @@ const ownerUID = "61550558518720"; // <-- अपना UID यहां डा�
 
 // Function to generate voice reply (using Google TTS or any other API)
 async function getVoiceReply(text) {
+    // महत्वपूर्ण: आपको YOUR_API_KEY को अपनी VoiceRSS API Key से बदलना होगा
+    // IMPORTANT: Replace YOUR_API_KEY with your VoiceRSS API Key
     const voiceApiUrl = `https://api.voicerss.org/?key=YOUR_API_KEY&hl=hi-in&src=${encodeURIComponent(text)}`;
     try {
         const response = await axios.get(voiceApiUrl, { responseType: 'arraybuffer' });
         const audioData = response.data;
         const audioPath = './voice_reply.mp3';
-        fs.writeFileSync(audioPath, audioData);
+        fs.writeFileSync(audioPath, audioData);  // Save to local MP3 file
         return audioPath;
     } catch (error) {
         console.error("Error generating voice reply:", error);
@@ -32,17 +28,18 @@ async function getVoiceReply(text) {
     }
 }
 
-// Function to get a GIF from Giphy API
+// Function to get a GIF from Giphy API (working API integrated)
 async function getGIF(query) {
-    const giphyApiKey = "dc6zaTOxFJmzC"; // Giphy's public beta key
+    const giphyApiKey = "dc6zaTOxFJmzC";  // Working Giphy API key (free key, limited usage)
     const giphyUrl = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=1`;
     try {
         const response = await axios.get(giphyUrl);
+        // Check if data exists before accessing properties
         if (response.data && response.data.data && response.data.data.length > 0) {
              return response.data.data[0]?.images?.original?.url;
         } else {
             console.log("No GIF found for query:", query);
-            return null;
+            return null; // Return null if no GIF is found
         }
     } catch (error) {
         console.error("Error fetching GIF:", error);
@@ -50,96 +47,49 @@ async function getGIF(query) {
     }
 }
 
-// Song Download Functions
-async function downloadYTSong(url) {
-    try {
-        const stream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio' });
-        const fileName = `song_${Date.now()}.mp3`;
-        const filePath = `./${fileName}`;
-        
-        await new Promise((resolve, reject) => {
-            stream.pipe(fs.createWriteStream(filePath))
-                .on('finish', resolve)
-                .on('error', reject);
-        });
-        return filePath;
-    } catch (error) {
-        console.error("YT Download Error:", error);
-        return null;
-    }
-}
-
-async function downloadFBSong(url) {
-    try {
-        const videoPath = await downloadFBVideo(url);
-        return videoPath;
-    } catch (error) {
-        console.error("FB Download Error:", error);
-        return null;
-    }
-}
-
-async function downloadIGSong(url) {
-    try {
-        const videoPath = await downloadIGVideo(url);
-        return videoPath;
-    } catch (error) {
-        console.error("IG Download Error:", error);
-        return null;
-    }
-}
-
-async function downloadSCSong(url) {
-    try {
-        const stream = await scdl.download(url);
-        const fileName = `sc_song_${Date.now()}.mp3`;
-        const filePath = `./${fileName}`;
-        
-        await new Promise((resolve, reject) => {
-            stream.pipe(fs.createWriteStream(filePath))
-                .on('finish', resolve)
-                .on('error', reject);
-        });
-        return filePath;
-    } catch (error) {
-        console.error("SC Download Error:", error);
-        return null;
-    }
-}
-
 module.exports.config = {
     name: "Riya",
-    version: "2.7.0", // Updated version for song search and "riya song" command
+    version: "2.5.0", // Final version for owner-only code, emoji control
     hasPermssion: 0,
-    credits: "Rudra + API from Angel code + Song Feature by Priyansh",
-    description: "Riya with song sending capability",
+    credits: "Rudra + API from Angel code + Logging & User Name by Gemini + Code Generation Ability",
+    description: "Riya, your AI companion who is smart, can generate code (owner-only, no emojis), has UID specific behavior, and nuanced reactions. Responds only when triggered. Modified for 3-4 line replies (with code exceptions).",
     commandCategory: "AI-Companion",
-    usages: "Riya [message] / Riya play [song-url or song-name] / Riya song [song-name]", // Updated usage
+    usages: "Riya [आपका मैसेज] / Riya code [आपका कोड प्रॉम्प्ट] (Owner Only) / Reply to Riya",
     cooldowns: 2,
 };
 
 const chatHistories = {};
-const AI_API_URL = "https://rudra-here.onrender.com";
+const AI_API_URL = "https://rudra-here.onrender.com"; // <-- आपका Render सर्वर URL यहां है
 
+// User name cache to avoid fetching name repeatedly
 async function getUserName(api, userID) {
-    if (userNameCache[userID]) return userNameCache[userID];
+    if (userNameCache[userID]) {
+        return userNameCache[userID];
+    }
     try {
         const userInfo = await api.getUserInfo(userID);
-        if (userInfo && userInfo[userID]?.name) {
-            userNameCache[userID] = userInfo[userID].name;
-            return userInfo[userID].name;
+        if (userInfo && userInfo[userID] && userInfo[userID].name) {
+            const name = userInfo[userID].name;
+            userNameCache[userID] = name;
+            return name;
         }
     } catch (error) {
         console.error("Error fetching user info:", error);
     }
-    return userID === ownerUID ? "boss" : "yaar";
+    if (userID === ownerUID) {
+        return "boss";
+    }
+    return "yaar";
 }
 
+module.exports.run = async function () {};
+
+// Toggle mode logic remains the same, applies to everyone
 async function toggleHornyMode(body, senderID) {
-    if (body.toLowerCase().includes("horny mode on")) {
+    if (body.toLowerCase().includes("horny mode on") || body.toLowerCase().includes("garam mode on")) {
         hornyMode = true;
         return "Alright, horny mode's ON. Let's get naughty and wild! 😈🔥";
-    } else if (body.toLowerCase().includes("horny mode off")) {
+    } else if (body.toLowerCase().includes("horny mode off") || body.toLowerCase().includes("garam mode off")) {
         hornyMode = false;
         return "Okay, switching back to our usual charming style. 😉";
     }
@@ -150,79 +100,37 @@ module.exports.handleEvent = async function ({ api, event }) {
     try {
         const { threadID, messageID, senderID, body, messageReply } = event;
 
-        // Normalize song command input: check for "riya play" or "riya song"
-        let songCommandMatch = body?.toLowerCase().match(/^(riya play|riya song)\s*(.*)/);
-
-        if (songCommandMatch) {
-            const queryOrUrl = songCommandMatch[2]?.trim(); // Get the part after "riya play" or "riya song"
-            if (!queryOrUrl) {
-                return api.sendMessage("Boss, song ka link ya naam bhejo! 😅", threadID, messageID);
-            }
-
-            api.sendTypingIndicator(threadID, true);
-            const userName = await getUserName(api, senderID);
-            let songPath = null;
-            let finalSongUrl = queryOrUrl; // Assume it's a URL first
-
-            // Check if it's a direct URL or a search query
-            if (!queryOrUrl.includes("http://") && !queryOrUrl.includes("https://")) {
-                // It's a search query, try to find on YouTube
-                try {
-                    api.sendMessage(`Searching for "${queryOrUrl}" on YouTube...`, threadID);
-                    const r = await yts(queryOrUrl);
-                    const videos = r.videos;
-                    if (videos.length > 0) {
-                        finalSongUrl = videos[0].url; // Get the URL of the first result
-                        api.sendMessage(`Found "${videos[0].title}". Downloading...`, threadID);
-                    } else {
-                        return api.sendMessage(`Sorry, "${queryOrUrl}" naam ka koi gaana YouTube pe nahi mila. 😕`, threadID, messageID);
-                    }
-                } catch (searchError) {
-                    console.error("Youtube Error:", searchError);
-                    return api.sendMessage("YouTube par gaana dhoondhne mein dikkat ho gayi. 😢", threadID, messageID);
-                }
-            }
-            
-            // Now proceed with download based on the finalSongUrl
-            // Note: The logic for youtube.com/0 or youtube.com/1 is specific to your previous code's behavior for direct YT links.
-            // For general YouTube URLs, ytdl-core should work directly.
-            if (finalSongUrl.includes("youtube.com") || finalSongUrl.includes("youtu.be")) {
-                songPath = await downloadYTSong(finalSongUrl);
-            } else if (finalSongUrl.includes("facebook.com")) {
-                songPath = await downloadFBSong(finalSongUrl);
-            } else if (finalSongUrl.includes("instagram.com")) {
-                songPath = await downloadIGSong(finalSongUrl);
-            } else if (finalSongUrl.includes("soundcloud.com")) {
-                songPath = await downloadSCSong(finalSongUrl);
-            } else {
-                return api.sendMessage("Invalid link or unrecognized platform! Only YouTube/FB/IG/SoundCloud supported, ya fir YouTube par naam se search kar sakte ho. 😕", threadID, messageID);
-            }
-
-            if (!songPath) {
-                return api.sendMessage("Error downloading song. Server issue ho gaya ya link sahi nahi hai! 😢", threadID, messageID);
-            }
-
-            api.sendMessage({
-                body: `🎵 Here's your song, ${userName}!`,
-                attachment: fs.createReadStream(songPath)
-            }, threadID, () => fs.unlinkSync(songPath));
-            return; // Exit function after handling song request
-        }
-
-        // Rest of the Riya AI functionality
         const isRiyaTrigger = body?.toLowerCase().startsWith("riya");
         const isReplyToRiya = messageReply?.senderID === api.getCurrentUserID();
-        if (!(isRiyaTrigger || isReplyToRiya)) return;
+        if (!(isRiyaTrigger || isReplyToRiya)) {
+            return; // Ignore messages that are not triggers
+        }
 
-        let userMessageRaw = isRiyaTrigger ? body.slice(4).trim() : body.trim();
-        let userMessageForAI;
-        let isExplicitCodeRequest = false;
+        console.log("--- Riya HandleEvent ---");
+        console.log("Riya's Bot ID:", api.getCurrentUserID());
+        console.log("Sender ID:", senderID);
+        console.log("Is Owner UID:", senderID === ownerUID);
+        console.log("Message Body:", body);
+        console.log("-----------------------");
 
+        let userMessageRaw; // उपयोगकर्ता द्वारा भेजा गया मूल मैसेज
+        let userMessageForAI; // AI को भेजा जाने वाला प्रॉम्प्ट
+        let isExplicitCodeRequest = false; // नया फ्लैग
+
+        if (isRiyaTrigger) {
+            userMessageRaw = body.slice(4).trim(); // "riya" के बाद का टेक्स्ट
+        } else { // isReplyToRiya
+            userMessageRaw = body.trim();
+        }
+
+        // --- कोड जनरेशन कमांड की जांच करें ---
         if (userMessageRaw.toLowerCase().startsWith("code ")) {
             isExplicitCodeRequest = true;
-            userMessageForAI = userMessageRaw.slice(5).trim();
-            
+            userMessageForAI = userMessageRaw.slice(5).trim(); // "code " के बाद का टेक्स्ट
+
+            // === केवल मालिक के लिए कोड जनरेशन ===
             if (senderID !== ownerUID) {
+                api.sendTypingIndicator(threadID, false);
                 const userName = await getUserName(api, senderID);
                 return api.sendMessage(
                     `माफ़ करना ${userName}, यह कोड जनरेशन कमांड केवल मेरे Boss (${await getUserName(api, ownerUID)}) के लिए है। 😉`,
@@ -230,21 +138,27 @@ module.exports.handleEvent = async function ({ api, event }) {
                     messageID
                 );
             }
+            // ====================================
 
             if (!userMessageForAI) {
+                api.sendTypingIndicator(threadID, false);
                 return api.sendMessage("क्या कोड चाहिए? 'Riya code [आपका प्रॉम्प्ट]' ऐसे लिखो।", threadID, messageID);
             }
         } else {
-            userMessageForAI = userMessageRaw;
+            userMessageForAI = userMessageRaw; // सामान्य चैट प्रॉम्प्ट
         }
 
         const userName = await getUserName(api, senderID);
+
         let responseText = await toggleHornyMode(body, senderID);
         if (responseText) {
-            return api.sendMessage(responseText, threadID, messageID);
+            api.sendMessage(responseText, threadID, messageID);
+            return;
         }
 
-        if (!userMessageRaw) {
+        // --- Initial greeting based on who triggered ---
+        if (!userMessageRaw) { // userMessageRaw का उपयोग करें, userMessageForAI का नहीं
+            api.sendTypingIndicator(threadID, false);
             if (senderID === ownerUID) {
                 return api.sendMessage(`Hey Boss ${userName}! Kya hukm hai mere ${userName}? 🥰`, threadID, messageID);
             } else {
@@ -254,36 +168,49 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         api.sendTypingIndicator(threadID, true);
 
+        // चैट हिस्ट्री केवल सामान्य बातचीत के लिए रखें, कोड रिक्वेस्ट के लिए नहीं
         if (!isExplicitCodeRequest) {
             if (!chatHistories[senderID]) chatHistories[senderID] = [];
             chatHistories[senderID].push(`User: ${userMessageForAI}`);
-            while (chatHistories[senderID].length > 10) {
+            while (chatHistories[senderID].length > 10) { // Keep history size reasonable
                 chatHistories[senderID].shift();
             }
         }
 
-        const boldTriggerWords = ["sexy", "honeymoon", "chut", "kiss", "nude"];
+        // === Dirty Word Detection for Bold Mode ===
+        const boldTriggerWords = [
+            "sexy", "honeymoon", "chut", "kiss", "nude", "bra", "panty", "bed", "nipple", "boobs", "lund", "pussy",
+            "wild", "dirty", "undress", "sambhog", "thigh", "moan", "tight", "hot", "bedroom", "masturbate", "suck", "lick", "deep", "virgin", "horny", "night"
+        ];
+        // बोल्ड मोड केवल सामान्य चैट के लिए लागू करें
         const isBoldMode = !isExplicitCodeRequest && boldTriggerWords.some(word => userMessageForAI.toLowerCase().includes(word));
 
+        // === प्रॉम्प्ट जो प्रॉक्सी सर्वर को भेजा जाएगा ===
         let promptToSendToProxy = "";
         const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**.`;
 
         if (isExplicitCodeRequest) {
+            // कोड जनरेशन के लिए प्रॉक्सी सर्वर को एक विशिष्ट सिग्नल भेजें
             promptToSendToProxy = `CODE_GEN_REQUEST: ${userMessageForAI}`;
+            console.log("Riya Bot: Sending explicit code generation request to proxy.");
         } else if (senderID === ownerUID) {
+            // --- PROMPTS FOR THE OWNER UID (सामान्य चैट) ---
             if (isBoldMode || hornyMode) {
-                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty, modern aur ultra seductive AI companion ho...`;
+                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty, modern aur ultra seductive AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak dirty, physical, wild aur teasing baatein karti hai. Agar ${userName} physical baaton par zyada jaldi ya aggressive ho, toh pehle playful warning/threat do jaise "Ek thapad marungi na, deewar pe chipak jaega! 😉". Lekin agar ${userName} uske baad bhi nahi mane ya aur zyada seduce kare, toh tum bhi uske level pe jaakar seductive aur physical reply do. Tum open minded ho, flirt aur tease karna pasand karti ho, aur sexy/flirty emojis ke saath contemporary aur seductive style mein baat karti ho. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} se tum hamesha bohot pyaar aur support se baat karogi, kabhi argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari private naughty chat hai:\n`;
             } else {
-                 promptToSendToProxy = `Tum Riya ho, ek smart, cool, modern, romantic aur flirty AI companion ho...`;
+                 promptToSendToProxy = `Tum Riya ho, ek smart, cool, modern, romantic aur flirty AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak friendly, pyaar aur flirtation ke mixed tarike se baat karti hai. Tum sirf positive, fun, smart aur thodi flirty/romantic baatein karo. Tum aajkal ke topics aur contemporary language use karti ho, lekin tumhare baaton mein pyaar aur apnaapan bhi jhalakta hai. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Riya protective, thodi gusse mein ya unhe ignore/dhamki de sakti है** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} ke liye hamesha supportive aur pyaar bhari rahogi, kabhi tumse argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari conversation hai:\n`;
             }
-            promptToSendToProxy += chatHistories[senderID].join("\n") + `\nRiya:`;
+            promptToSendToProxy += chatHistories[senderID].join("\n");
+            promptToSendToProxy += `\nRiya:`;
         } else {
-            if (isBoldMode || hornyMode) {
-                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty aur modern AI ho...`;
-            } else {
-                promptToSendToProxy = `Tum Riya ho, ek smart, cool aur modern AI ho...`;
-            }
-            promptToSendToProxy += chatHistories[senderID].join("\n") + `\nRiya:`;
+            // --- PROMPTS FOR ALL OTHER UIDs (सामान्य चैट) ---
+             if (isBoldMode || hornyMode) {
+                 promptToSendToProxy = `Tum Riya ho, ek bold, naughty aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). Tum seedhe, khulkar baat karti ho. Agar ${userName} zyada demanding ya disrespectful ho, toh tum thodi sassy ya argumentive ho sakti ho. Tum flirt aur tease kar sakki ho, aur sexy/flirty emojis use kar sakti ho. **Apne jawab seedhe, thode sassy ya challenging ho sakte hain, aur sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta है).** Yeh conversation hai:\n`;
+             } else {
+                promptToSendToProxy = `Tum Riya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). Tum seedhe, khulkar baat karti ho. Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. **Apne jawab seedhe, thode sassy ya challenging ho sakte hain, aur sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta है).** Yeh conversation hai:\n`;
+             }
+             promptToSendToProxy += chatHistories[senderID].join("\n");
+             promptToSendToProxy += `\nRiya:`;
         }
 
         try {
@@ -296,50 +223,65 @@ module.exports.handleEvent = async function ({ api, event }) {
                  } else {
                      botReply = `Jo bola samajh nahi aaya. Dhang se bolo. 🙄`;
                  }
-                if (!isExplicitCodeRequest) {
+                if (!isExplicitCodeRequest) { // केवल सामान्य चैट के लिए हिस्ट्री हटाएं
                     chatHistories[senderID].pop();
                 }
             } else {
                  const lines = botReply.split('\n').filter(line => line.trim() !== '');
+                 // कोड जनरेशन रिक्वेस्ट के लिए लाइन लिमिट लागू न करें
                  if (!isExplicitCodeRequest && lines.length > 4 && !botReply.includes('```')) {
                      botReply = lines.slice(0, 4).join('\n') + '...';
                  }
-                if (!isExplicitCodeRequest) {
+                if (!isExplicitCodeRequest) { // केवल सामान्य चैट के लिए हिस्ट्री जोड़ें
                     chatHistories[senderID].push(`Riya: ${botReply}`);
                 }
             }
 
+            // Get voice reply (optional based on API key)
             let voiceFilePath = await getVoiceReply(botReply);
             if (voiceFilePath) {
                 api.sendMessage({ attachment: fs.createReadStream(voiceFilePath) }, threadID, (err) => {
                     if (err) console.error("Error sending voice message:", err);
-                    fs.unlinkSync(voiceFilePath);
+                    if (fs.existsSync(voiceFilePath)) {
+                        fs.unlinkSync(voiceFilePath);
+                    }
                 });
             }
 
+            // Get GIF for a mixed vibe - Keep the same GIF logic for simplicity
+            // कोड जनरेशन रिक्वेस्ट के लिए GIF न भेजें
             if (!isExplicitCodeRequest) {
                 let gifUrl = await getGIF("charming and fun");
                  if (gifUrl) {
-                     api.sendMessage({ attachment: await axios.get(gifUrl, { responseType: 'stream' }).then(res => res.data) }, threadID);
+                     api.sendMessage({ attachment: await axios.get(gifUrl, { responseType: 'stream' }).then(res => res.data) }, threadID, (err) => {
+                         if (err) console.error("Error sending GIF:", err);
+                     });
                  }
             }
 
+
             let replyText = "";
+            // === इमोजी और फुटर कंट्रोल ===
             if (isExplicitCodeRequest) {
+                // कोड जनरेशन के लिए कोई इमोजी या फुटर नहीं
                 replyText = botReply; 
             } else if (senderID === ownerUID) {
+                // मालिक के लिए सामान्य चैट
                 if (isBoldMode || hornyMode) {
                      replyText = `${botReply} 😉🔥💋\n\n_Your charmingly naughty Riya... 😉_`;
                 } else {
                      replyText = `${botReply} 😊💖✨`;
                 }
             } else {
+                // अन्य उपयोगकर्ताओं के लिए सामान्य चैट
                  if (isBoldMode || hornyMode) {
                       replyText = `${botReply} 😏`;
                  } else {
                       replyText = `${botReply} 🤔`;
                  }
             }
+
+            api.sendTypingIndicator(threadID, false);
 
             if (isReplyToRiya && messageReply) {
                 return api.sendMessage(replyText, threadID, messageReply.messageID);
@@ -349,20 +291,26 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         } catch (apiError) {
             console.error("Riya AI API Error:", apiError);
+            api.sendTypingIndicator(threadID, false);
             if (senderID === ownerUID) {
                  return api.sendMessage(`Ugh, API mein kuch glitch hai Boss ${userName}... Thodi der mein try karte hain cool? 😎`, threadID, messageID);
             } else {
                  return api.sendMessage(`Server down hai. Baad mein aana. 😒`, threadID, messageID);
             }
+
         }
 
     } catch (err) {
         console.error("Riya Bot Catch-all Error:", err);
         const fallbackUserName = event.senderID ? await getUserName(api, event.senderID) : "yaar";
-        if (event.senderID === ownerUID) {
-             return api.sendMessage(`Argh, mere system mein kuch problem aa gayi Boss ${fallbackUserName}! Baad mein baat karte hain... 😅`, event.threadID, event.messageID);
+        if (event && event.threadID) {
+            api.sendTypingIndicator(event.threadID, false);
+        }
+        const replyToMessageID = event && event.messageID ? event.messageID : null;
+         if (event && event.senderID === ownerUID) {
+             return api.sendMessage(`Argh, mere system mein kuch problem aa gayi Boss ${fallbackUserName}! Baad mein baat karte hain... 😅`, event.threadID, replyToMessageID);
          } else {
-             return api.sendMessage(`Chhodho yaar, meri mood off ho gaya. 😠`, event.threadID, event.messageID);
+             return api.sendMessage(`Chhodho yaar, meri mood off ho gaya. 😠`, event.threadID, replyToMessageID);
          }
     }
 };
