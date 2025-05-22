@@ -1,18 +1,18 @@
-name: Node.js CI & Deploy to Render
+name: Node.js CI & Deploy to Render # वर्कफ़्लो का नाम
 
 on:
   push:
-    branches: [main] # जब भी 'main' ब्रांच पर पुश होता है
+    branches: [main] # जब भी 'main' ब्रांच पर पुश होता है, यह वर्कफ़्लो चलेगा
   pull_request:
-    branches: [main] # जब भी 'main' ब्रांच पर पुल रिक्वेस्ट होती है
+    branches: [main] # जब भी 'main' ब्रांच पर पुल रिक्वेस्ट होती है, यह वर्कफ़्लो चलेगा
 
 jobs:
-  build_and_deploy: # जॉब का नाम बदला गया ताकि यह बिल्ड और डिप्लॉय दोनों को दर्शाए
-    runs-on: ubuntu-latest
+  build_and_deploy: # यह जॉब बिल्ड और डिप्लॉय दोनों को हैंडल करेगी
+    runs-on: ubuntu-latest # एक Ubuntu Linux वर्चुअल मशीन पर चलेगा
 
     strategy:
       matrix:
-        node-version: [20.x] # Node.js वर्जन
+        node-version: [20.x] # Node.js वर्जन जिसे उपयोग करना है
 
     steps:
     - name: Checkout code # GitHub रिपॉजिटरी से कोड को क्लोन करता है
@@ -21,15 +21,15 @@ jobs:
     - name: Use Node.js ${{ matrix.node-version }} # Node.js एनवायरनमेंट सेट करता है
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ matrix.node-version }} # मैट्रिक्स से Node.js वर्जन का उपयोग करें
 
     - name: Install dependencies # प्रोजेक्ट की डिपेंडेंसी इंस्टॉल करता है
       run: npm install
 
-    # नोट: 'Start the bot' स्टेप को हटा दिया गया है क्योंकि बॉट Render पर चलेगा।
-    # यदि आपको GitHub Actions में बॉट को टेस्ट करने की आवश्यकता है, तो आप यहां टेस्ट स्क्रिप्ट जोड़ सकते हैं।
-    # उदाहरण: - name: Run tests
-    #            run: npm test
+    # यदि आपको GitHub Actions में कोई टेस्ट चलाने की आवश्यकता है, तो आप यहां एक नया 'step' जोड़ सकते हैं।
+    # उदाहरण:
+    # - name: Run tests
+    #   run: npm test
 
     - name: Trigger Render Deploy # Render पर डिप्लॉयमेंट को ट्रिगर करता है
       # यह कदम तभी चलेगा जब पिछले सभी कदम सफल होंगे।
@@ -42,7 +42,7 @@ jobs:
         # महत्वपूर्ण: इस URL को GitHub Secrets में सुरक्षित रूप से स्टोर करें।
         # GitHub Secrets में RENDER_DEPLOY_HOOK_URL नाम का एक सीक्रेट बनाएं।
         echo "Triggering Render deployment..."
-        curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+        curl -X POST "$RENDER_DEPLOY_HOOK_URL" # POST रिक्वेस्ट का उपयोग करें
 
       env:
         # RENDER_DEPLOY_HOOK_URL को GitHub Secrets से प्राप्त किया जाएगा।
