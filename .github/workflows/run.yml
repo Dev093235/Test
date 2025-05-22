@@ -1,33 +1,50 @@
-name: Node.js CI
+name: Node.js CI & Deploy to Render
 
 on:
   push:
-    branches: [main]
+    branches: [main] # जब भी 'main' ब्रांच पर पुश होता है
   pull_request:
-    branches: [main]
+    branches: [main] # जब भी 'main' ब्रांच पर पुल रिक्वेस्ट होती है
 
 jobs:
-  build:
+  build_and_deploy: # जॉब का नाम बदला गया ताकि यह बिल्ड और डिप्लॉय दोनों को दर्शाए
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [20.x] # Node.js वर्जन
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code # GitHub रिपॉजिटरी से कोड को क्लोन करता है
+      uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node-version }} # Node.js एनवायरनमेंट सेट करता है
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install dependencies
+    - name: Install dependencies # प्रोजेक्ट की डिपेंडेंसी इंस्टॉल करता है
       run: npm install
 
-    - name: Start the bot
+    # नोट: 'Start the bot' स्टेप को हटा दिया गया है क्योंकि बॉट Render पर चलेगा।
+    # यदि आपको GitHub Actions में बॉट को टेस्ट करने की आवश्यकता है, तो आप यहां टेस्ट स्क्रिप्ट जोड़ सकते हैं।
+    # उदाहरण: - name: Run tests
+    #            run: npm test
+
+    - name: Trigger Render Deploy # Render पर डिप्लॉयमेंट को ट्रिगर करता है
+      # यह कदम तभी चलेगा जब पिछले सभी कदम सफल होंगे।
+      run: |
+        # Render पर डिप्लॉयमेंट को ट्रिगर करने के लिए एक cURL कमांड का उपयोग करें।
+        # आपको अपनी Render सर्विस के लिए एक डिप्लॉय हुक URL की आवश्यकता होगी।
+        # यह URL आपको Render डैशबोर्ड में अपनी सर्विस सेटिंग्स में मिलेगा।
+        # उदाहरण: https://api.render.com/deploy/srv-xxxxxxxxxxxxxxxxx?key=your_deploy_hook_key
+        #
+        # महत्वपूर्ण: इस URL को GitHub Secrets में सुरक्षित रूप से स्टोर करें।
+        # GitHub Secrets में RENDER_DEPLOY_HOOK_URL नाम का एक सीक्रेट बनाएं।
+        echo "Triggering Render deployment..."
+        curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+
       env:
-        PORT: 8080
-        YOUR_VOICERSS_API_KEY: ${{ secrets.YOUR_VOICERSS_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: npm start
+        # RENDER_DEPLOY_HOOK_URL को GitHub Secrets से प्राप्त किया जाएगा।
+        RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
