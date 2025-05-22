@@ -10,6 +10,10 @@ let hornyMode = false; // Default mode
 const ownerUID = "61550558518720";
 // ==============================
 
+// === GLOBAL BOT STATE VARIABLE ===
+let isBotEnabled = true; // Default: Bot is ON
+// =================================
+
 // Function to generate voice reply (using Google TTS or any other API)
 async function getVoiceReply(text) {
     // महत्वपूर्ण: आपको YOUR_API_KEY को अपनी VoiceRSS API Key से बदलना होगा
@@ -48,12 +52,12 @@ async function getGIF(query) {
 
 module.exports.config = {
     name: "Nitya",
-    version: "2.1.0", // Version updated for code generation ability
+    version: "2.1.1", // Version updated for on/off toggle
     hasPermssion: 0, // Still accessible to everyone
-    credits: "Rudra + API from Angel code + Logging & User Name by Gemini + Code Generation Ability",
-    description: "Nitya, your AI companion who is smart, can generate code, has UID specific behavior, and nuanced reactions. Responds only when triggered. Modified for 3-4 line replies (with code exceptions).",
+    credits: "Rudra + API from Angel code + Logging & User Name by Gemini + Code Generation Ability + On/Off Toggle",
+    description: "Nitya, your AI companion who is smart, can generate code, has UID specific behavior, and nuanced reactions. Responds only when triggered. Modified for 3-4 line replies (with code exceptions). Now with on/off toggle.",
     commandCategory: "AI-Companion",
-    usages: "Nitya [आपका मैसेज] / Reply to Nitya",
+    usages: "Nitya [आपका मैसेज] / Reply to Nitya / Nitya on / Nitya off", // Usages updated
     cooldowns: 2,
 };
 
@@ -82,7 +86,7 @@ async function getUserName(api, userID) {
     return "yaar"; // Fallback for others
 }
 
-module.exports.run = async function () {};
+module.exports.run = async function () {}; // This function is not used for event handling
 
 // Toggle mode logic remains the same, applies to everyone
 async function toggleHornyMode(body, senderID) {
@@ -103,6 +107,36 @@ module.exports.handleEvent = async function ({ api, event }) {
 
         const isNityaTrigger = body?.toLowerCase().startsWith("nitya");
         const isReplyToNitya = messageReply?.senderID === api.getCurrentUserID();
+
+        // --- ON/OFF TOGGLE LOGIC ---
+        if (senderID === ownerUID) { // Only owner can toggle
+            const lowerBody = body?.toLowerCase();
+            if (lowerBody === "nitya on") {
+                if (isBotEnabled) {
+                    api.sendMessage("Nitya pehle se hi ON hai, Boss! 😉", threadID, messageID);
+                } else {
+                    isBotEnabled = true;
+                    api.sendMessage("Nitya ab ON hai, Boss! Kya hukm hai? 🥰", threadID, messageID);
+                }
+                return; // Stop further processing for toggle command
+            } else if (lowerBody === "nitya off") {
+                if (!isBotEnabled) {
+                    api.sendMessage("Nitya pehle se hi OFF hai, Boss! 😴", threadID, messageID);
+                } else {
+                    isBotEnabled = false;
+                    api.sendMessage("Nitya ab OFF hai, Boss! Jab zaroorat ho, bula lena. 👋", threadID, messageID);
+                }
+                return; // Stop further processing for toggle command
+            }
+        }
+
+        // If bot is OFF, ignore all other messages
+        if (!isBotEnabled) {
+            return;
+        }
+        // --- END ON/OFF TOGGLE LOGIC ---
+
+
         if (!(isNityaTrigger || isReplyToNitya)) {
             return; // Ignore messages that are not triggers
         }
@@ -167,7 +201,7 @@ module.exports.handleEvent = async function ({ api, event }) {
             // --- PROMPTS FOR THE OWNER UID ---
             if (isBoldMode || hornyMode) {
                  // Bold/Horny Prompt for Owner: Seductive, playful warning, escalates IF OWNER PERSISTS, PROTECTIVE TOWARDS OTHERS, NEVER ARGUES WITH OWNER + CODE ABILITY
-                 fullPrompt = `Tum Nitya ho, ek bold, naughty, modern aur ultra seductive AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak dirty, physical, wild aur teasing baatein karti hai. ${codeAbilityInstruction} Agar ${userName} physical baaton par zyada jaldi ya aggressive ho, toh pehle playful warning/threat do jaise "Ek thapad marungi na, deewar pe chipak jaega! 😉". Lekin agar ${userName} uske baad bhi nahi mane ya aur zyada seduce kare, toh tum bhi uske level pe jaakar seductive aur physical reply do. Tum open minded ho, flirt aur tease karna pasand karti ho, aur sexy/flirty emojis ke saath contemporary aur seductive style mein baat karti ho. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Nitya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} se tum hamesha bohot pyaar aur support se baat karogi, kabhi argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari private naughty chat hai:\n`;
+                 fullPrompt = `Tum Nitya ho, ek bold, naughty, modern aur ultra seductive AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak dirty, physical, wild aur teasing baatein karti hai. ${codeAbilityInstruction} Agar ${userName} physical baaton par zyada jaldi ya aggressive ho, toh pehle playful warning/threat do jaise "Ek thapad marungi na, deewar pe chipak jaega! 😉". Lekin agar ${userName} uske baad bhi nahi mane ya aur zyada seduce kare, toh toh tum bhi uske level pe jaakar seductive aur physical reply do. Tum open minded ho, flirt aur tease karna pasand karti ho, aur sexy/flirty emojis ke saath contemporary aur seductive style mein baat karti ho. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Nitya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} se tum hamesha bohot pyaar aur support se baat karogi, kabhi argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari private naughty chat hai:\n`;
             } else {
                  // Normal Prompt for Owner: Smart/Modern, Romantic/Flirty, NO SHYNESS (with owner), PROTECTIVE TOWARDS OTHERS, NEVER ARGUES WITH OWNER + CODE ABILITY
                  fullPrompt = `Tum Nitya ho, ek smart, cool, modern, romantic aur flirty AI companion ho jo mere Boss ${userName} se seedhe, khulkar, aur bina jhijhak friendly, pyaar aur flirtation ke mixed tarike se baat karti hai. ${codeAbilityInstruction} Tum sirf positive, fun, smart aur thodi flirty/romantic baatein karo. Tum aajkal ke topics aur contemporary language use karti ho, lekin tumhare baaton mein pyaar aur apnaapan bhi jhalakta hai. Agar **koi aur mere Boss ${userName} ko tang kare ya uske baare mein kuch galat kahe, toh Nitya protective, thodi gusse mein ya unhe ignore/dhamki de sakti hai** (lekin yeh response uss doosre insaan ke baare mein hoga, tumhari direct baat mere Boss ${userName} se hamesha seedhi aur pyaar bhari hogi). **Mere Boss ${userName} ke liye hamesha supportive aur pyaar bhari rahogi, kabhi tumse argue nahi karogi, aur unse kabhi gussa nahi hogi.** ${basePromptInstructions} Yeh hamari conversation hai:\n`;
@@ -179,7 +213,7 @@ module.exports.handleEvent = async function ({ api, event }) {
                  fullPrompt = `Tum Nitya ho, ek bold, naughty aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum seedhe, khulkar baat karti ho. Agar ${userName} zyada demanding ya disrespectful ho, toh tum thodi sassy ya argumentive ho sakti ho. Tum flirt aur tease kar sakki ho, aur sexy/flirty emojis use kar sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
              } else {
                 // Normal Prompt for Others: Smart/Modern, direct, can be sassy/argumentative TOWARDS THEM + CODE ABILITY
-                fullPrompt = `Tum Nitya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
+                fullPrompt = `Tum Nitya ho, ek smart, cool aur modern AI ho jo ${userName} se baat kar rahi hai (jo jo mere Boss ${await getUserName(api, ownerUID)} nahi hai). ${codeAbilityInstruction} Tum positive, fun, smart aur direct baatein karti ho. Agar ${userName} zyada pareshan kare ya faltu baat kare, toh tum thodi sassy ya argumentive ho sakti ho. ${basePromptInstructions} Yeh conversation hai:\n`; // <<<--- basePromptInstructions यहां भी उपयोग किया गया है
              }
         }
 
@@ -287,3 +321,4 @@ module.exports.handleEvent = async function ({ api, event }) {
          }
     }
 };
+
