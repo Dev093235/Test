@@ -2,7 +2,7 @@ const moment = require("moment-timezone");
 const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync, rm } = require("fs-extra");
 const { join, resolve } = require("path");
 const { execSync } = require('child_process');
-const logger = require("./utils/log.js");
+const logger = require("./utils/log.js"); // सुनिश्चित करें कि यह पथ सही है
 const login = require("fca-smart-shankar"); 
 const axios = require("axios");
 const listPackage = JSON.parse(readFileSync('./package.json')).dependencies;
@@ -55,7 +55,7 @@ global.data = new Object({
     allThreadID: new Array()
 });
 
-global.utils = require("./utils");
+global.utils = require("./utils"); // सुनिश्चित करें कि यह पथ सही है
 
 global.nodemodule = new Object();
 
@@ -92,6 +92,7 @@ try {
 }
 catch { return logger.loader("Can't load file config!", "error") }
 
+// सुनिश्चित करें कि includes/database सही पथ पर मौजूद है
 const { Sequelize, sequelize } = require("./includes/database");
 
 writeFileSync(global.client.configPath + ".temp", JSON.stringify(global.config, null, 4), 'utf8');
@@ -100,6 +101,7 @@ writeFileSync(global.client.configPath + ".temp", JSON.stringify(global.config, 
 //========= Load language use =========//
 /////////////////////////////////////////
 
+// सुनिश्चित करें कि languages फोल्डर और en.lang फाइल सही पथ पर मौजूद है
 const langFile = (readFileSync(`${__dirname}/languages/${global.config.language || "en"}.lang`, { encoding: 'utf-8' })).split(/\r?\n|\r/);
 const langData = langFile.filter(item => item.indexOf('#') != 0 && item != '');
 for (const item of langData) {
@@ -124,22 +126,39 @@ global.getText = function (...args) {
     return text;
 }
 
+// ========================================================================
+// === appState को लोड करने का अपडेटेड लॉजिक (एनवायरनमेंट वेरिएबल से) ===
+// ========================================================================
+var appState;
 try {
-    var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
-    var appState = require(appStateFile);
-    logger.loader(global.getText("priyansh", "foundPathAppstate"))
+    // पहले Render द्वारा प्रदान किए गए APP_STATE_JSON एनवायरनमेंट वेरिएबल से पढ़ने का प्रयास करें
+    if (process.env.APP_STATE_JSON) {
+        appState = JSON.parse(process.env.APP_STATE_JSON);
+        logger.loader("Found appstate from environment variable.");
+    } else {
+        // यदि APP_STATE_JSON एनवायरनमेंट वेरिएबल नहीं मिला,
+        // तो लोकल फाइल से पढ़ने का प्रयास करें (यह केवल लोकल डेवलपमेंट के लिए होगा)
+        var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
+        appState = require(appStateFile);
+        logger.loader(global.getText("priyansh", "foundPathAppstate"));
+    }
+} catch (error) {
+    // यदि appstate लोड करने में कोई त्रुटि होती है, तो उसे लॉग करें
+    return logger.loader(global.getText("priyansh", "notFoundPathAppstate") + ` Error: ${error.message}`, "error");
 }
-catch { return logger.loader(global.getText("priyansh", "notFoundPathAppstate"), "error") }
+// ========================================================================
+
 
 //========= Login account and start Listen Event =========//
 
 function onBot({ models: botModel }) {
     const loginData = {};
-    loginData['appState'] = appState;
+    loginData['appState'] = appState; // यहां अपडेटेड appState का उपयोग किया जाएगा
     login(loginData, async(loginError, loginApiData) => {
         if (loginError) return logger(JSON.stringify(loginError), `ERROR`);
         loginApiData.setOptions(global.config.FCAOption)
-        writeFileSync(appStateFile, JSON.stringify(loginApiData.getAppState(), null, '\x09'))
+        // appstate.json को Render पर लिखने से बचें, क्योंकि यह रीड-ओनली फाइल सिस्टम है
+        // writeFileSync(appStateFile, JSON.stringify(loginApiData.getAppState(), null, '\x09')) 
         global.client.api = loginApiData
         global.config.version = '1.2.14'
         global.client.timeStart = new Date().getTime(),
@@ -274,12 +293,13 @@ function onBot({ models: botModel }) {
         logger.loader(global.getText('priyansh', 'finishLoadModule', global.client.commands.size, global.client.events.size)) 
         logger.loader(`Startup Time: ${((Date.now() - global.client.timeStart) / 1000).toFixed()}s`)   
         logger.loader('===== [ ' + (Date.now() - global.client.timeStart) + 'ms ] =====')
-        writeFileSync(global.client['configPath'], JSON['stringify'](global.config, null, 4), 'utf8') 
-        unlinkSync(global['client']['configPath'] + '.temp');        
+        // Render पर रीड-ओनली फाइल सिस्टम के कारण config.json को लिखने से बचें
+        // writeFileSync(global.client['configPath'], JSON['stringify'](global.config, null, 4), 'utf8') 
+        // unlinkSync(global['client']['configPath'] + '.temp');        
         const listenerData = {};
         listenerData.api = loginApiData; 
         listenerData.models = botModel;
-        const listener = require('./includes/listen')(listenerData);
+        const listener = require('./includes/listen')(listenerData); // सुनिश्चित करें कि यह पथ सही है
 
         function listenerCallback(error, message) {
             if (error) return logger(global.getText('priyansh', 'handleListenError', JSON.stringify(error)), 'error');
@@ -289,7 +309,7 @@ function onBot({ models: botModel }) {
         };
         global.handleListen = loginApiData.listenMqtt(listenerCallback);
         try {
-            await checkBan(loginApiData);
+            await checkBan(loginApiData); // सुनिश्चित करें कि checkBan फंक्शन उपलब्ध है
         } catch (error) {
             return //process.exit(0);
         };
@@ -305,7 +325,7 @@ function onBot({ models: botModel }) {
         const authentication = {};
         authentication.Sequelize = Sequelize;
         authentication.sequelize = sequelize;
-        const models = require('./includes/database/model')(authentication);
+        const models = require('./includes/database/model')(authentication); // सुनिश्चित करें कि यह पथ सही है
         logger(global.getText('priyansh', 'successConnectDatabase'), '[ DATABASE ]');
         const botData = {};
         botData.models = models
@@ -314,3 +334,4 @@ function onBot({ models: botModel }) {
 })();
 
 process.on('unhandledRejection', (err, p) => {});
+
