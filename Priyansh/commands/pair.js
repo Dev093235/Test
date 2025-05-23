@@ -1,11 +1,11 @@
 module.exports.config = {
   name: "pair",
-  version: "2.0.0",
+  version: "1.0.0",
   hasPermssion: 0,
-  credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭 + Modified to Pro by RUDRA",
-  description: "Find your perfect match with aesthetic pairing image",
-  commandCategory: "Love & Fun",
-  usages: "pair3",
+  credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
+  description: "🔥 Ultimate Swag Pairing Command 🔥",
+  commandCategory: "Fun",
+  usages: "",
   dependencies: {
     "axios": "",
     "fs-extra": "",
@@ -14,92 +14,111 @@ module.exports.config = {
   cooldowns: 0
 };
 
-module.exports.run = async function ({ Users, api, event }) {
-  const { loadImage, createCanvas } = require("canvas");
+module.exports.run = async function ({ api, event, Users, Threads }) {
   const fs = global.nodemodule["fs-extra"];
   const axios = global.nodemodule["axios"];
+  const { loadImage, createCanvas } = require("canvas");
+  
+  const pathImg = __dirname + "/cache/pairResult.png";
+  const pathAvt1 = __dirname + "/cache/avt1.png";
+  const pathAvt2 = __dirname + "/cache/avt2.png";
 
-  const pathImg = __dirname + "/cache/pair_bg.png";
-  const pathAvt1 = __dirname + "/cache/pair_avt1.png";
-  const pathAvt2 = __dirname + "/cache/pair_avt2.png";
+  const senderID = event.senderID;
+  const senderName = await Users.getNameUser(senderID);
 
-  const id1 = event.senderID;
-  const name1 = await Users.getNameUser(id1);
+  // Get all users except sender and bot
   const threadInfo = await api.getThreadInfo(event.threadID);
-  const allMembers = threadInfo.userInfo;
-  const botID = api.getCurrentUserID();
+  let members = threadInfo.userInfo.filter(u => u.id != senderID && u.id != api.getCurrentUserID());
 
-  // Get gender of sender
-  let gender1 = allMembers.find(u => u.id == id1)?.gender;
-
-  // Filter eligible partners
-  let candidates = allMembers.filter(u =>
-    u.id !== id1 &&
-    u.id !== botID &&
-    ((gender1 === 1 && u.gender === 2) || (gender1 === 2 && u.gender === 1) || gender1 == undefined)
-  );
-
-  if (!candidates.length) {
-    return api.sendMessage("Sorry! Koi perfect match nahi mila group me... Try again later ya naye log bulao!", event.threadID, event.messageID);
+  if (members.length === 0) {
+    return api.sendMessage("😔 Arre bhai, akele hi ho is group mein! Koi match nahi mila. Thodi der baad try karo ya naye log lao!", event.threadID, event.messageID);
   }
 
-  const id2 = candidates[Math.floor(Math.random() * candidates.length)].id;
-  const name2 = await Users.getNameUser(id2);
+  // Random partner pick
+  const partner = members[Math.floor(Math.random() * members.length)];
+  const partnerName = await Users.getNameUser(partner.id);
 
-  const percentages = ["99.99", "88", "77", "69", "51", "100", "91", "42", "60", "73", "101", "∞"];
-  const match = percentages[Math.floor(Math.random() * percentages.length)];
+  // Compatibility score random with swag
+  const scores = [69, 70, 80, 90, 99, 100, 88, 77];
+  const compatibility = scores[Math.floor(Math.random() * scores.length)];
 
+  // Cool backgrounds - tu apne hisab se add kar sakta hai
   const backgrounds = [
     "https://i.postimg.cc/wjJ29HRB/background1.png",
     "https://i.postimg.cc/zf4Pnshv/background2.png",
     "https://i.postimg.cc/5tXRQ46D/background3.png"
   ];
-  const bgURL = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  const bgUrl = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
-  // Load avatars & background
-  const avt1 = (await axios.get(`https://graph.facebook.com/${id1}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
-  const avt2 = (await axios.get(`https://graph.facebook.com/${id2}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
-  const bg = (await axios.get(bgURL, { responseType: "arraybuffer" })).data;
+  // Download avatars & background
+  const getImage = async (url, path) => {
+    const res = await axios.get(url, { responseType: "arraybuffer" });
+    await fs.writeFileSync(path, Buffer.from(res.data, "utf-8"));
+  };
 
-  fs.writeFileSync(pathAvt1, Buffer.from(avt1));
-  fs.writeFileSync(pathAvt2, Buffer.from(avt2));
-  fs.writeFileSync(pathImg, Buffer.from(bg));
+  await getImage(`https://graph.facebook.com/${senderID}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, pathAvt1);
+  await getImage(`https://graph.facebook.com/${partner.id}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, pathAvt2);
+  await getImage(bgUrl, pathImg);
 
+  // Canvas setup
   const baseImg = await loadImage(pathImg);
   const avatar1 = await loadImage(pathAvt1);
   const avatar2 = await loadImage(pathAvt2);
 
-  const canvas = createCanvas(1280, 720);
+  const canvas = createCanvas(baseImg.width, baseImg.height);
   const ctx = canvas.getContext("2d");
 
-  ctx.drawImage(baseImg, 0, 0, 1280, 720);
-  ctx.drawImage(avatar1, 100, 200, 300, 300);
-  ctx.drawImage(avatar2, 880, 200, 300, 300);
+  // Draw background
+  ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
 
-  const finalBuffer = canvas.toBuffer();
-  fs.writeFileSync(pathImg, finalBuffer);
+  // Draw avatars with circle mask
+  function drawCircleImage(img, x, y, size) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(img, x, y, size, size);
+    ctx.restore();
+  }
+  drawCircleImage(avatar1, 130, 150, 280);
+  drawCircleImage(avatar2, 900, 150, 280);
 
+  // Draw flashy heart
+  ctx.font = "140px Arial";
+  ctx.fillStyle = "#ff2e63";
+  ctx.shadowColor = "#ff6f91";
+  ctx.shadowBlur = 30;
+  ctx.textAlign = "center";
+  ctx.fillText("💖", canvas.width / 2, 350);
+
+  // Compatibility text with style
+  ctx.shadowColor = "#000000";
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 60px Poppins, Arial";
+  ctx.fillText(`Compatibility Score: ${compatibility}%`, canvas.width / 2, 530);
+
+  // Final save
+  const buffer = canvas.toBuffer();
+  fs.writeFileSync(pathImg, buffer);
+
+  // Clean up avatars
   fs.removeSync(pathAvt1);
   fs.removeSync(pathAvt2);
 
-  const message = {
-    body:
-`✨ *Ultimate Matchmaker Report* ✨
+  // Send message with swag
+  return api.sendMessage({
+    body: `✨🔥 Wah bhai! Ek dum 🔥🔥🔥\n\n` +
+          `🎯 ${senderName} ❤️ ${partnerName}\n` +
+          `💘 Compatibility: ${compatibility}%\n\n` +
+          `“Dil ke kone mein ek jagah hamesha reserved hai tumhare liye...”\n\n` +
+          `───────────────\n` +
+          `⚡ Powered by 𝗥𝘂𝗱𝗿𝗮 𝗕𝗼𝘁 ⚡\n` +
+          `───────────────\n` +
+          `Aage badho, aur pair command se aur matches dhundo!`,
 
-💞 *${name1}* just got paired with *${name2}* 💞
-
-💘 Compatibility: *${match}%*
-🌈 Vibe Level: Off the charts!
-
-Kya hi cute lag rahe ho dono! Ab baat karna start karo aur anime jaisa love story likh daalo! ✍️
-
-#RiyaMatchmakingBot`,
-    mentions: [
-      { tag: name1, id: id1 },
-      { tag: name2, id: id2 }
-    ],
+    mentions: [{ id: partner.id, tag: partnerName }],
     attachment: fs.createReadStream(pathImg)
-  };
-
-  return api.sendMessage(message, event.threadID, () => fs.unlinkSync(pathImg), event.messageID);
+  }, event.threadID, () => fs.unlinkSync(pathImg), event.messageID);
 };
