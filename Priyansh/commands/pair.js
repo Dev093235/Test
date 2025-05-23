@@ -1,58 +1,105 @@
-const axios = global.nodemodule["axios"];
-const fs = global.nodemodule["fs-extra"];
-
 module.exports.config = {
-  name: "pair",
+  name: "pair3",
   version: "2.0.0",
   hasPermssion: 0,
-  credits: "Rudra (Stylish Hinglish Edition)",
-  description: "Create romantic pairing with full emoji + anime feel",
-  commandCategory: "Love",
-  usages: "pair",
-  cooldowns: 5
+  credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭 + Modified to Pro by RUDRA",
+  description: "Find your perfect match with aesthetic pairing image",
+  commandCategory: "Love & Fun",
+  usages: "pair3",
+  dependencies: {
+    "axios": "",
+    "fs-extra": "",
+    "canvas": ""
+  },
+  cooldowns: 0
 };
 
-module.exports.run = async function({ api, event }) {
-  const { threadID, senderID, messageID } = event;
+module.exports.run = async function ({ Users, api, event }) {
+  const { loadImage, createCanvas } = require("canvas");
+  const fs = global.nodemodule["fs-extra"];
+  const axios = global.nodemodule["axios"];
 
-  const loveRate = ['21%', '67%', '19%', '37%', '17%', '96%', '52%', '62%', '76%', '83%', '100%', '99%', '0%', '48%'];
-  const compatibility = loveRate[Math.floor(Math.random() * loveRate.length)];
+  const pathImg = __dirname + "/cache/pair_bg.png";
+  const pathAvt1 = __dirname + "/cache/pair_avt1.png";
+  const pathAvt2 = __dirname + "/cache/pair_avt2.png";
 
-  const threadInfo = await api.getThreadInfo(threadID);
-  const members = threadInfo.participantIDs.filter(id => id !== senderID);
-  const partnerID = members[Math.floor(Math.random() * members.length)];
+  const id1 = event.senderID;
+  const name1 = await Users.getNameUser(id1);
+  const threadInfo = await api.getThreadInfo(event.threadID);
+  const allMembers = threadInfo.userInfo;
+  const botID = api.getCurrentUserID();
 
-  const user1 = await api.getUserInfo(senderID);
-  const user2 = await api.getUserInfo(partnerID);
+  // Get gender of sender
+  let gender1 = allMembers.find(u => u.id == id1)?.gender;
 
-  const name1 = user1[senderID].name;
-  const name2 = user2[partnerID].name;
-  const gender = user2[partnerID].gender === 2 ? "Male 🧑" : user2[partnerID].gender === 1 ? "Female 👩" : "Unknown";
+  // Filter eligible partners
+  let candidates = allMembers.filter(u =>
+    u.id !== id1 &&
+    u.id !== botID &&
+    ((gender1 === 1 && u.gender === 2) || (gender1 === 2 && u.gender === 1) || gender1 == undefined)
+  );
 
-  const tagUsers = [
-    { id: senderID, tag: name1 },
-    { id: partnerID, tag: name2 }
+  if (!candidates.length) {
+    return api.sendMessage("Sorry! Koi perfect match nahi mila group me... Try again later ya naye log bulao!", event.threadID, event.messageID);
+  }
+
+  const id2 = candidates[Math.floor(Math.random() * candidates.length)].id;
+  const name2 = await Users.getNameUser(id2);
+
+  const percentages = ["99.99", "88", "77", "69", "51", "100", "91", "42", "60", "73", "101", "∞"];
+  const match = percentages[Math.floor(Math.random() * percentages.length)];
+
+  const backgrounds = [
+    "https://i.postimg.cc/wjJ29HRB/background1.png",
+    "https://i.postimg.cc/zf4Pnshv/background2.png",
+    "https://i.postimg.cc/5tXRQ46D/background3.png"
   ];
+  const bgURL = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
-  const avatar1 = (await axios.get(`https://graph.facebook.com/${senderID}/picture?height=512&width=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
-  const avatar2 = (await axios.get(`https://graph.facebook.com/${partnerID}/picture?height=512&width=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
-  const loveGif = (await axios.get("https://media.tenor.com/HEwHf4Zah5EAAAAd/anime-love.gif", { responseType: "arraybuffer" })).data;
+  // Load avatars & background
+  const avt1 = (await axios.get(`https://graph.facebook.com/${id1}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
+  const avt2 = (await axios.get(`https://graph.facebook.com/${id2}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
+  const bg = (await axios.get(bgURL, { responseType: "arraybuffer" })).data;
 
-  fs.writeFileSync(__dirname + "/cache/user1.png", Buffer.from(avatar1, "utf-8"));
-  fs.writeFileSync(__dirname + "/cache/user2.png", Buffer.from(avatar2, "utf-8"));
-  fs.writeFileSync(__dirname + "/cache/love.gif", Buffer.from(loveGif, "utf-8"));
+  fs.writeFileSync(pathAvt1, Buffer.from(avt1));
+  fs.writeFileSync(pathAvt2, Buffer.from(avt2));
+  fs.writeFileSync(pathImg, Buffer.from(bg));
 
-  const attachments = [
-    fs.createReadStream(__dirname + "/cache/user1.png"),
-    fs.createReadStream(__dirname + "/cache/love.gif"),
-    fs.createReadStream(__dirname + "/cache/user2.png")
-  ];
+  const baseImg = await loadImage(pathImg);
+  const avatar1 = await loadImage(pathAvt1);
+  const avatar2 = await loadImage(pathAvt2);
+
+  const canvas = createCanvas(1280, 720);
+  const ctx = canvas.getContext("2d");
+
+  ctx.drawImage(baseImg, 0, 0, 1280, 720);
+  ctx.drawImage(avatar1, 100, 200, 300, 300);
+  ctx.drawImage(avatar2, 880, 200, 300, 300);
+
+  const finalBuffer = canvas.toBuffer();
+  fs.writeFileSync(pathImg, finalBuffer);
+
+  fs.removeSync(pathAvt1);
+  fs.removeSync(pathAvt2);
 
   const message = {
-    body: `💘 | LOVE CONNECTOR 3000 ACTIVATED...\n━━━━━━━━━━━━━━━\n💞 Aaj ki Jodi Tay Ho Chuki Hai:\n✨ ${name1} ❤️ ${name2}\n\n❤️‍🔥 Compatibility Level: ${compatibility}\n⚧️ Partner Gender: ${gender}\n\n⏳ Connecting Hearts...\n💌 Sending Love Signals...\n💫 Destiny Matched!\n\n❝ Pyaar wahi hota hai... jo achanak ho jaye ❞\n\n💍 Shubh ho tum dono ka milan!\n━━━━━━━━━━━━━━━`,
-    mentions: tagUsers,
-    attachment: attachments
+    body:
+`✨ *Ultimate Matchmaker Report* ✨
+
+💞 *${name1}* just got paired with *${name2}* 💞
+
+💘 Compatibility: *${match}%*
+🌈 Vibe Level: Off the charts!
+
+Kya hi cute lag rahe ho dono! Ab baat karna start karo aur anime jaisa love story likh daalo! ✍️
+
+#RiyaMatchmakingBot`,
+    mentions: [
+      { tag: name1, id: id1 },
+      { tag: name2, id: id2 }
+    ],
+    attachment: fs.createReadStream(pathImg)
   };
 
-  return api.sendMessage(message, threadID, messageID);
+  return api.sendMessage(message, event.threadID, () => fs.unlinkSync(pathImg), event.messageID);
 };
