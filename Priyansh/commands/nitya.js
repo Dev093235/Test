@@ -62,7 +62,7 @@ module.exports.config = {
 };
 
 const chatHistories = {};
-const AI_API_URL = "https://geminiw.onrender.com/chat";
+const AI_API_URL = "[https://geminiw.onrender.com/chat](https://geminiw.onrender.com/chat)";
 
 // User name cache to avoid fetching name repeatedly
 async function getUserName(api, userID) {
@@ -108,7 +108,12 @@ module.exports.handleEvent = async function ({ api, event }) {
         const isNityaTrigger = body?.toLowerCase().startsWith("nitya");
         const isReplyToNitya = messageReply?.senderID === api.getCurrentUserID();
 
-        // --- ON/OFF TOGGLE LOGIC ---
+        // --- NEW LOGIC: Check if message is for Nitya specifically ---
+        const lowerCaseBody = body ? body.toLowerCase() : "";
+        const containsRiyaMention = lowerCaseBody.includes("riya") || lowerCaseBody.includes("bot testing");
+        const containsNityaMention = lowerCaseBody.includes("nitya") || lowerCaseBody.includes("boss");
+
+        // First, handle Nitya's ON/OFF toggle, as it's a direct command and should always be processed by Nitya
         if (senderID === ownerUID) { // Only owner can toggle
             const lowerBody = body?.toLowerCase();
             if (lowerBody === "nitya on") {
@@ -130,23 +135,34 @@ module.exports.handleEvent = async function ({ api, event }) {
             }
         }
 
-        // If bot is OFF, ignore all other messages
+        // If bot is OFF, ignore all other messages (after checking toggle command)
         if (!isBotEnabled) {
             return;
         }
-        // --- END ON/OFF TOGGLE LOGIC ---
 
-
-        if (!(isNityaTrigger || isReplyToNitya)) {
-            return; // Ignore messages that are not triggers
+        // Now, the core logic for preventing dual replies
+        if (!isReplyToNitya) { // If it's not a direct reply to Nitya
+            if (isNityaTrigger) { // If it starts with "nitya"
+                // This is fine, Nitya is explicitly called.
+            } else if (containsNityaMention && !containsRiyaMention) { // Contains Nitya mention but not Riya
+                // Nitya can respond here
+            } else { // If it's not explicitly for Nitya
+                return; // Ignore messages not meant for Nitya
+            }
         }
+        // --- END NEW LOGIC ---
 
         console.log("--- Nitya HandleEvent ---");
         console.log("Nitya's Bot ID:", api.getCurrentUserID());
         console.log("Sender ID:", senderID);
         console.log("Is Owner UID:", senderID === ownerUID); // Log if owner triggered
         console.log("Message Body:", body);
+        console.log("Is Nitya Trigger:", isNityaTrigger);
+        console.log("Is Reply To Nitya:", isReplyToNitya);
+        console.log("Contains Riya Mention:", containsRiyaMention);
+        console.log("Contains Nitya Mention:", containsNityaMention);
         console.log("-----------------------");
+
 
         let userMessage;
         if (isNityaTrigger) {
@@ -193,7 +209,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         let fullPrompt = "";
         // Added instruction for code generation ability and line limit exception
         const codeAbilityInstruction = `Tum bahut smart ho aur code likhna jaanti ho. Agar ${senderID === ownerUID ? 'mere Boss' : ''} ${userName} code ke baare mein pooche ya koi technical sawal kare, toh tum code snippet generate karke madad kar sakti ho. **Jab code generate karo, toh answer 3-4 lines se lamba ho sakta hai.**`;
-        
+
         // Updated basePromptInstructions to ensure language detection and response
         const basePromptInstructions = `Apne jawab hamesha casual, smart, charming aur **sirf 3-4 lines mein hi dena (lekin agar code generate karna pade, toh answer lamba ho sakta hai)**. Jis bhasha mein user baat kare, usi mein jawab dena, chahe woh Hindi, English ya Hinglish (Hindi aur English ka mishran) ho.`; // <<<--- यह लाइन अपडेट की गई है
 
@@ -321,4 +337,3 @@ module.exports.handleEvent = async function ({ api, event }) {
          }
     }
 };
-
