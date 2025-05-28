@@ -16,10 +16,10 @@ module.exports.config = {
 
 // 🔹 Tumhari APIs
 const API_URLS = {
-    "Silly API": "https://silly-5smc.onrender.com",
+    "rudra API": "https://rudra-here.onrender.com",
     "MirryKal API": "https://mirrykal.onrender.com",
     "Arun Music API": "https://arun-music.onrender.com",
-    "Mello API": "https://mello-ebnh.onrender.com"
+    "Mello API": "https://test-50l9.onrender.com"
 };
 
 // 🔹 API Check Function (Ping Only)
