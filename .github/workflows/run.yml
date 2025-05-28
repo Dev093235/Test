@@ -1,50 +1,36 @@
-name: Node.js CI & Deploy to Render # वर्कफ़्लो का नाम
+name: Node.js CI
 
 on:
   push:
-    branches: [main] # जब भी 'main' ब्रांच पर पुश होता है, यह वर्कफ़्लो चलेगा
+    branches: [main]
   pull_request:
-    branches: [main] # जब भी 'main' ब्रांच पर पुल रिक्वेस्ट होती है, यह वर्कफ़्लो चलेगा
+    branches: [main]
 
 jobs:
-  build_and_deploy: # यह जॉब बिल्ड और डिप्लॉय दोनों को हैंडल करेगी
-    runs-on: ubuntu-latest # एक Ubuntu Linux वर्चुअल मशीन पर चलेगा
+  build:
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [20.x] # Node.js वर्जन जिसे उपयोग करना है
+        node-version: [20.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - name: Checkout code # GitHub रिपॉजिटरी से कोड को क्लोन करता है
-      uses: actions/checkout@v2
+    # Step to check out the repository code
+    - uses: actions/checkout@v2
 
-    - name: Use Node.js ${{ matrix.node-version }} # Node.js एनवायरनमेंट सेट करता है
+    # Step to set up the specified Node.js version
+    - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ matrix.node-version }} # मैट्रिक्स से Node.js वर्जन का उपयोग करें
+        node-version: ${{ matrix.node-version }}
 
-    - name: Install dependencies # प्रोजेक्ट की डिपेंडेंसी इंस्टॉल करता है
+    # Step to install dependencies
+    - name: Install dependencies
       run: npm install
 
-    # यदि आपको GitHub Actions में कोई टेस्ट चलाने की आवश्यकता है, तो आप यहां एक नया 'step' जोड़ सकते हैं।
-    # उदाहरण:
-    # - name: Run tests
-    #   run: npm test
-
-    - name: Trigger Render Deploy # Render पर डिप्लॉयमेंट को ट्रिगर करता है
-      # यह कदम तभी चलेगा जब पिछले सभी कदम सफल होंगे।
-      run: |
-        # Render पर डिप्लॉयमेंट को ट्रिगर करने के लिए एक cURL कमांड का उपयोग करें।
-        # आपको अपनी Render सर्विस के लिए एक डिप्लॉय हुक URL की आवश्यकता होगी।
-        # यह URL आपको Render डैशबोर्ड में अपनी सर्विस सेटिंग्स में मिलेगा।
-        # उदाहरण: https://api.render.com/deploy/srv-xxxxxxxxxxxxxxxxx?key=your_deploy_hook_key
-        #
-        # महत्वपूर्ण: इस URL को GitHub Secrets में सुरक्षित रूप से स्टोर करें।
-        # GitHub Secrets में RENDER_DEPLOY_HOOK_URL नाम का एक सीक्रेट बनाएं।
-        echo "Triggering Render deployment..."
-        curl -X POST "$RENDER_DEPLOY_HOOK_URL" # POST रिक्वेस्ट का उपयोग करें
-
+    # Step to run the bot with the correct port
+    - name: Start the bot
       env:
-        # RENDER_DEPLOY_HOOK_URL को GitHub Secrets से प्राप्त किया जाएगा।
-        RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-
+        PORT: 8080
+      run: npm start
