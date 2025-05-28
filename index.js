@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 
 // Just for keeping Render's web service alive
 app.get("/", (req, res) => {
-  res.send("🟢 Priyansh Bot is running!");
+  res.send("🟢 𝗥𝘂𝗱𝗿𝗮 Bot is running!");
 });
 
 app.listen(port, () => {
