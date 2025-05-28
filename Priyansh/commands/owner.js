@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "owner",
-  version: "1.0.4",
+  version: "1.0.6", // Version अपडेट किया
   hasPermssion: 0,
   credits: "Rudra & You",
   description: "जब कोई बोले owner तो stylish Rudra reply के साथ anime images भेजे",
@@ -25,44 +25,57 @@ const imageLinks = [
   "https://i.imgur.com/9tX9vYU.jpeg"
 ];
 
+// इमेज को स्ट्रीम करने के लिए फंक्शन
 async function fetchImageStream(url) {
-  const response = await axios({
-    method: "GET",
-    url,
-    responseType: "stream"
-  });
-  return response.data;
+  try {
+    const response = await axios({
+      method: "GET",
+      url,
+      responseType: "stream"
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching image stream:", error);
+    return null; // त्रुटि होने पर null वापस करें
+  }
 }
 
 module.exports.handleEvent = async function({ api, event }) {
   try {
     const { threadID, messageID, body } = event;
-    if (!body) return;
+    // अगर मैसेज खाली है या 'owner' शब्द नहीं है तो कुछ न करें
+    if (!body || !body.toLowerCase().includes("owner")) return;
 
-    const msg = body.toLowerCase();
+    const selectedImage = imageLinks[Math.floor(Math.random() * imageLinks.length)];
+    const imgStream = await fetchImageStream(selectedImage);
 
-    if (msg.includes("owner")) {
-      const selectedImage = imageLinks[Math.floor(Math.random() * imageLinks.length)];
-      const imgStream = await fetchImageStream(selectedImage);
+    // अगर इमेज स्ट्रीम नहीं मिल पाई तो एरर मैसेज भेजें
+    if (!imgStream) {
+      await api.sendMessage("माफ़ करना, मैं अभी इमेज नहीं भेज पा रहा हूँ. कृपया बाद में कोशिश करें.", threadID, messageID);
+      return;
+    }
 
-      const stylishText = 
+    // YouTube लिंक हटा दिया गया है
+    const stylishText = 
 `✨🔥 𝙻𝚎𝚟𝚂𝚝𝚢𝚕𝚒𝚜𝚑 𝗥𝘂𝗱𝗿𝗮 𝗢𝘄𝗻𝗲𝗿 🔥✨
 
-▶ YouTube: https://youtube.com/@MirryKal
 ▶ Facebook: https://www.facebook.com/rudra.461718
 
-📸 Here's your random stylish anime image!`;
+📸 यहाँ आपकी रैंडम स्टाइलिश एनीमे इमेज है!`;
 
-      await api.sendMessage({
-        body: stylishText,
-        attachment: imgStream
-      }, threadID, messageID);
+    await api.sendMessage({
+      body: stylishText,
+      attachment: imgStream
+    }, threadID, messageID);
 
-      api.setMessageReaction("📷", messageID, () => {}, true);
-    }
+    // मैसेज पर रिएक्शन जोड़ें
+    api.setMessageReaction("📷", messageID, () => {}, true);
+
   } catch (err) {
-    console.error("Owner module error:", err);
+    console.error("Owner module में त्रुटि:", err);
+    // उपयोगकर्ता को भी त्रुटि के बारे में सूचित करें
+    api.sendMessage("माफ़ करना, owner मॉड्यूल में कुछ गड़बड़ हो गई है. कृपया बाद में कोशिश करें.", event.threadID, event.messageID);
   }
 };
 
-module.exports.run = () => {};
+module.exports.run = () => {}; // यह फंक्शन खाली रहता है क्योंकि यह एक "नो-प्रिफिक्स" कमांड है
