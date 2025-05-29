@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "owner",
-  version: "1.0.6", // Version अपडेट किया
+  version: "1.0.7", // Version अपडेट किया
   hasPermssion: 0,
   credits: "Rudra & You",
   description: "जब कोई बोले owner तो stylish Rudra reply के साथ anime images भेजे",
@@ -25,17 +25,15 @@ const imageLinks = [
   "https://i.imgur.com/9tX9vYU.jpeg"
 ];
 
-// इमेज को स्ट्रीम करने के लिए फंक्शन
-async function fetchImageStream(url) {
+// इमेज को Buffer के रूप में फेच करने के लिए फंक्शन
+async function fetchImageBuffer(url) {
   try {
-    const response = await axios({
-      method: "GET",
-      url,
-      responseType: "stream"
-    });
-    return response.data;
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    // axios.get में responseType 'arraybuffer' देने पर data एक ArrayBuffer होता है।
+    // इसे Node.js में attachment के रूप में इस्तेमाल करने के लिए Buffer में बदलना पड़ता है।
+    return Buffer.from(response.data);
   } catch (error) {
-    console.error("Error fetching image stream:", error);
+    console.error("Error fetching image buffer:", error);
     return null; // त्रुटि होने पर null वापस करें
   }
 }
@@ -47,17 +45,16 @@ module.exports.handleEvent = async function({ api, event }) {
     if (!body || !body.toLowerCase().includes("owner")) return;
 
     const selectedImage = imageLinks[Math.floor(Math.random() * imageLinks.length)];
-    const imgStream = await fetchImageStream(selectedImage);
+    const imgBuffer = await fetchImageBuffer(selectedImage); // इमेज को Buffer के रूप में फेच करें
 
-    // अगर इमेज स्ट्रीम नहीं मिल पाई तो एरर मैसेज भेजें
-    if (!imgStream) {
+    // अगर इमेज Buffer नहीं मिल पाया तो एरर मैसेज भेजें
+    if (!imgBuffer) {
       await api.sendMessage("माफ़ करना, मैं अभी इमेज नहीं भेज पा रहा हूँ. कृपया बाद में कोशिश करें.", threadID, messageID);
       return;
     }
 
-    // YouTube लिंक हटा दिया गया है
     const stylishText = 
-`✨🔥 𝙻𝚎𝚟𝚂𝚝𝚢𝚕𝚒𝚜𝚑 𝗥𝘂𝗱𝗿𝗮 𝗢𝘄𝗻𝗲𝗿 🔥✨
+`✨🔥 𝙻𝚎𝚟𝚂𝚝𝚢𝚕𝚒𝚜𝚑 𝗥𝘂𝚍𝗿𝗮 𝗢𝘄𝗻𝗲𝗿 🔥✨
 
 ▶ Facebook: https://www.facebook.com/rudra.461718
 
@@ -65,7 +62,7 @@ module.exports.handleEvent = async function({ api, event }) {
 
     await api.sendMessage({
       body: stylishText,
-      attachment: imgStream
+      attachment: imgBuffer // Buffer को attachment के रूप में दें
     }, threadID, messageID);
 
     // मैसेज पर रिएक्शन जोड़ें
