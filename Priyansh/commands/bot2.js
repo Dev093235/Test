@@ -1,10 +1,10 @@
-Const fs = global.nodemodule["fs-extra"];
+const fs = global.nodemodule["fs-extra"]; // 'Const' को 'const' किया गया
 
 module.exports.config = {
   name: "goibot2",
-  version: "1.0.7", // Version updated for time feature
+  version: "1.0.6", // Version updated to reflect credit change
   hasPermssion: 0,
-  credits: "Recrafted by Rudra ✨",
+  credits: "Recrafted by Rudra ✨", // Credit updated to Rudra only
   description: "Anime-styled romantic messages with flair (lyrics only)",
   commandCategory: "Noprefix",
   usages: "noprefix",
@@ -13,25 +13,9 @@ module.exports.config = {
 
 module.exports.handleEvent = async function({ api, event, args, Threads, Users }) {
   const moment = require("moment-timezone");
+  const time = moment.tz("Asia/Kolkata").format("DD/MM/YYYY || HH:mm:ss");
   const { threadID, messageID } = event;
   const name = await Users.getNameUser(event.senderID);
-
-  // --- Time setup ---
-  const timeFormats = [
-    { format: "hh:mm:ss A, DD MMMM YYYY", prefix: "⏰ Abhi Ka Samay: ", style: (t) => `**${t}**` }, // Bold
-    { format: "HH:mm, dddd, MMMM D, YYYY", prefix: "🕒 Filhaal Time Ho Raha Hai: ", style: (t) => `*${t}*` }, // Italic
-    { format: "h:mm A (DD/MM/YYYY)", prefix: "⏳ Dekhiye Samay: ", style: (t) => `\`${t}\`` }, // Monospace
-    { format: "HH:mm:ss, Do MMM YYYY", prefix: "✨ The Current Moment: ", style: (t) => `***${t}***` }, // Bold Italic
-    { format: "hh:mm A, MMMM DD, YYYY", prefix: "🕰️ Samay Ka Andaaz: ", style: (t) => `**\`${t}\`**` }, // Bold Monospace
-    { format: "HH:mm:ss [IST]", prefix: "🗓️ Abhi Tak Ka Time: ", style: (t) => `*${t}*` }, // Italic
-    { format: "h:mm A [on] dddd", prefix: "💖 Is Pal Ka Waqt: ", style: (t) => `**${t}**` }, // Bold
-    { format: "hh:mm:ss A", prefix: "⏱️ Samay Ki Taarikh: ", style: (t) => `\`${t}\`` }, // Monospace
-  ];
-  const randomTimeFormat = timeFormats[Math.floor(Math.random() * timeFormats.length)];
-  const currentTime = moment.tz("Asia/Kolkata").format(randomTimeFormat.format);
-  const formattedTime = randomTimeFormat.style(currentTime);
-  const timeMessage = `${randomTimeFormat.prefix} ${formattedTime} (Sonipat, Haryana, India) 📍`;
-  // --- End Time setup ---
 
   const lyrics = [
     "🎵 Main Tenu Samjhawan Ki, Na Tere Bina Lagda Jee. Tu Ki Jaane Pyar Mera, Main Karoon Intezaar Tera. Tu Dil, Tu Yun Jaan Meri. Main Tenu Samjhawan Ki, Na Tere Bina Lagda Jee. 💞",
@@ -118,17 +102,32 @@ module.exports.handleEvent = async function({ api, event, args, Threads, Users }
     "🍁•°•═════•°•🍁"
   ];
 
+  // Array of different time display formats
+  const timeFormats = [
+      `⏰ अभी का समय है: **${moment.tz("Asia/Kolkata").format("h:mm:ss A")}**`,
+      `⏳ *यह इस समय है*: \`${moment.tz("Asia/Kolkata").format("HH:mm:ss || DD-MM-YYYY")}\``,
+      `🕰️ **आज ${moment.tz("Asia/Kolkata").format("dddd, D MMMM YYYY")} को, ${moment.tz("Asia/Kolkata").format("h:mm A")} हो रहे हैं।**`,
+      `⏱️ _घड़ी की सुईयाँ बताती हैं_: **${moment.tz("Asia/Kolkata").format("hh:mm A")}**`,
+      `🗓️ *दिनांक और समय*: \`${moment.tz("Asia/Kolkata").format("DD/MM/YYYY @ h:mm:ss A")}\``,
+      `✨ वर्तमान पल: **${moment.tz("Asia/Kolkata").format("HH:mm")}**`,
+      `💖 समय गुजर रहा है: *${moment.tz("Asia/Kolkata").format("h:mm A")}*`,
+      `🌟 आपकी सेवा में: ` + `**${moment.tz("Asia/Kolkata").format("HH:mm:ss")}**`,
+      `💫 अभी ठीक ` + `_` + `${moment.tz("Asia/Kolkata").format("h:mm A")}` + `_` + ` हुआ है।`,
+      `📅 ` + `\`आज है ${moment.tz("Asia/Kolkata").format("DD MMMM YYYY")}, ${moment.tz("Asia/Kolkata").format("h:mm A")} पर\``
+  ];
+
   if (event.body?.toLowerCase().startsWith("song")) {
     const lyric = lyrics[Math.floor(Math.random() * lyrics.length)];
     const border = borders[Math.floor(Math.random() * borders.length)];
+    const randomTimeFormat = timeFormats[Math.floor(Math.random() * timeFormats.length)]; // Select a random time format
 
     const msg = {
       body:
         `${border} 💖  𝗛𝗲𝘆 𝗦𝘂𝗻𝗱𝗮𝗿 ${name} 💖 🎶 𝗧𝗵𝗶𝘀 𝗢𝗻𝗲'𝘀 𝗙𝗼𝗿 𝗬𝗼𝘂... ${border}\n\n` +
         `❝ ${lyric} ❞ 💕\n\n` +
-        `──────────────✧✧──────────────\n\n` +
-        `${timeMessage}\n\n` + // Time message added here
-        `✨🅒🅡🅔🅓🅘🅣🅢 ✧ ꧁ ʀᴜᴅʀᴀ ꧂ ✨`
+        `_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n` +
+        `${randomTimeFormat}\n\n` + // Add the random time format here
+        `✨🅒🅡🅔🅓🅘🅣🅢 ✧ ꧁ ʀᴜᴅʀᴀ ꧂ ✨` // Credit updated here
     };
     return api.sendMessage(msg, threadID, messageID);
   }
