@@ -16,9 +16,9 @@ module.exports.config = {
 
 // 🔹 Tumhari APIs
 const API_URLS = {
-    "rudra API": "https://rudra-here.onrender.com",
+    "🆁︎🆄︎🅳︎🆁︎🅰︎ API": "https://rudra-here.onrender.com",
     "MirryKal API": "https://mirrykal.onrender.com",
-    "Arun Music API": "https://arun-music.onrender.com",
+    "🆁︎🆄︎🅳︎🆁︎🅰︎ Music API": "https://rudra-music-spp.onrender.com",
     "Mello API": "https://test-50l9.onrender.com"
 };
 
