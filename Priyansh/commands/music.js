@@ -21,12 +21,12 @@ function deleteAfterTimeout(filePath, timeout = 5000) {
 module.exports = {
   config: {
     name: "music",
-    version: "2.0.2",
+    version: "2.0.3",
     hasPermssion: 0,
-    credits: "Mirrykal",
-    description: "Download YouTube song or video",
+    credits: "Mirrykal modified by Coding Partner",
+    description: "Search and play a 30-second music preview from Deezer via your API.",
     commandCategory: "Media",
-    usages: "[songName] [optional: video]",
+    usages: "[songName]",
     cooldowns: 5,
   },
 
@@ -35,8 +35,7 @@ module.exports = {
       return api.sendMessage("⚠️ Gaane ka naam to likho na! 😒", event.threadID);
     }
 
-    const mediaType = args[args.length - 1].toLowerCase() === "video" ? "video" : "audio";
-    const songName = mediaType === "video" ? args.slice(0, -1).join(" ") : args.join(" ");
+    const songName = args.join(" ");
 
     const processingMessage = await api.sendMessage(
       `🔍 "${songName}" dhoondh rahi hoon... Ruko zara! 😏`,
@@ -46,97 +45,98 @@ module.exports = {
     );
 
     try {
-      // 🔎 **YouTube Search**
       const searchResults = await ytSearch(songName);
       if (!searchResults || !searchResults.videos.length) {
-        throw new Error("Kuch nahi mila! Gaane ka naam sahi likho. 😑");
+        throw new Error("YouTube par kuch nahi mila! Gaane ka naam sahi likho. 😑");
       }
 
-      // 🎵 **Top Result ka URL**
       const topResult = searchResults.videos[0];
-      const videoUrl = `https://www.youtube.com/watch?v=${topResult.videoId}`;
-
-      // 🖼 **Download Thumbnail**
-      const thumbnailUrl = topResult.thumbnail;
-      const safeTitle = topResult.title.replace(/[^a-zA-Z0-9]/g, "_");
+      const safeTitle = topResult.title.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 50);
       const downloadDir = path.join(__dirname, "cache");
       if (!fs.existsSync(downloadDir)) {
         fs.mkdirSync(downloadDir, { recursive: true });
       }
-      const thumbnailPath = path.join(downloadDir, `${safeTitle}.jpg`);
+
+      const thumbnailUrl = topResult.thumbnail;
+      const thumbnailPath = path.join(downloadDir, `${safeTitle}_thumb.jpg`);
 
       const thumbnailFile = fs.createWriteStream(thumbnailPath);
       await new Promise((resolve, reject) => {
         https.get(thumbnailUrl, (response) => {
-          response.pipe(thumbnailFile);
-          thumbnailFile.on("finish", () => {
-            thumbnailFile.close(resolve);
-          });
+          if (response.statusCode === 200) {
+            response.pipe(thumbnailFile);
+            thumbnailFile.on("finish", () => {
+              thumbnailFile.close(resolve);
+            });
+          } else {
+            reject(new Error(`Thumbnail download failed with status: ${response.statusCode}`));
+          }
         }).on("error", (error) => {
           fs.unlinkSync(thumbnailPath);
-          reject(new Error(`Thumbnail download failed: ${error.message}`));
+          reject(new Error(`Error downloading thumbnail: ${error.message}`));
         });
       });
 
-      // 📩 **Send Thumbnail First**
       await api.sendMessage(
         {
           attachment: fs.createReadStream(thumbnailPath),
-          body: `🎶 **Title:** ${topResult.title}\n👀 ..Thoda sa Wait kro Song load Horha hai 😘`,
+          body: `🎶 **Title:** ${topResult.title}\n⏰ Please wait, song loading... 🎧`,
         },
         event.threadID
       );
 
-      // 🗑 **Delete Thumbnail After 5 Seconds**
       deleteAfterTimeout(thumbnailPath, 5000);
 
-      // 🖥 **API Call to YouTube Downloader**
-      const apiUrl = `https://arun-music.onrender.com/download?url=${encodeURIComponent(videoUrl)}&type=${mediaType}`;
-      const downloadResponse = await axios.get(apiUrl);
+      const yourRenderApiUrl = `https://rudra-music-spp.onrender.com/search/tracks?q=${encodeURIComponent(songName)}`;
+      const deezerApiResponse = await axios.get(yourRenderApiUrl);
 
-      if (!downloadResponse.data.file_url) {
-        throw new Error("Download fail ho gaya. 😭");
+      if (!deezerApiResponse.data || !deezerApiResponse.data.data || !deezerApiResponse.data.data.length || !deezerApiResponse.data.data[0].preview) {
+        throw new Error("Deezer API se song preview nahi mila. Gaane ka naam change karke dekho. 😢");
       }
 
-      const downloadUrl = downloadResponse.data.file_url.replace("http:", "https:");
-      const filename = `${safeTitle}.${mediaType === "video" ? "mp4" : "mp3"}`;
-      const downloadPath = path.join(downloadDir, filename);
+      const firstTrack = deezerApiResponse.data.data[0];
+      const previewUrl = firstTrack.preview.replace("http:", "https:");
+      const downloadFilename = `${safeTitle}_preview.mp3`;
+      const downloadPath = path.join(downloadDir, downloadFilename);
 
-      // ⬇️ **Download Media File**
-      const file = fs.createWriteStream(downloadPath);
+      const audioFileStream = fs.createWriteStream(downloadPath);
       await new Promise((resolve, reject) => {
-        https.get(downloadUrl, (response) => {
+        https.get(previewUrl, (response) => {
           if (response.statusCode === 200) {
-            response.pipe(file);
-            file.on("finish", () => {
-              file.close(resolve);
+            response.pipe(audioFileStream);
+            audioFileStream.on("finish", () => {
+              audioFileStream.close(resolve);
             });
           } else {
-            reject(new Error(`Download fail ho gaya. Status: ${response.statusCode}`));
+            fs.unlinkSync(downloadPath);
+            reject(new Error(`Audio preview download failed. Status: ${response.statusCode}`));
           }
         }).on("error", (error) => {
           fs.unlinkSync(downloadPath);
-          reject(new Error(`Error downloading file: ${error.message}`));
+          reject(new Error(`Error downloading audio preview: ${error.message}`));
         });
       });
 
       api.setMessageReaction("✅", event.messageID, () => {}, true);
 
-      // 🎧 **Send the MP3/MP4 File**
       await api.sendMessage(
         {
           attachment: fs.createReadStream(downloadPath),
-          body: `🎵 **Aapka ${mediaType === "video" ? "Video 🎥" : "Gaana 🎧"} taiyaar hai!**\nEnjoy! 😍`,
+          body: `🎵 **Aapka gaana 🎧 (30-second preview) taiyaar hai!**\n🎶 Title: ${firstTrack.title}\n🎤 Artist: ${firstTrack.artist.name}\nEnjoy! 😍`,
         },
         event.threadID,
         event.messageID
       );
 
-      // 🗑 **Auto Delete File After 5 Seconds**
       deleteAfterTimeout(downloadPath, 5000);
+
     } catch (error) {
-      console.error(`❌ Error: ${error.message}`);
+      console.error(`❌ Error in music command: ${error.message}`);
       api.sendMessage(`❌ Error: ${error.message} 😢`, event.threadID, event.messageID);
+    } finally {
+      if (processingMessage && api.unsendMessage) {
+        api.unsendMessage(processingMessage.messageID);
+      }
     }
   },
 };
