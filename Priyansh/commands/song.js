@@ -1,73 +1,34 @@
-const fs = require("fs");
-const ytdl = require("ytdl-core");
-const { exec } = require("child_process");
-const path = require("path");
-
-module.exports.run = async ({ api, event, args }) => {
-  if (!args.length) 
-    return api.sendMessage("Please provide a song name or YouTube URL.", event.threadID, event.messageID);
-
-  const search = args.join(" ");
-
-  // You can use yt-search or youtubei.js for search, but here for simplicity
-  // Assume user sends YouTube link, or use yt-search to get first video URL
-
-  // For demo, assume args[0] is YouTube URL (improve by searching later)
-  let url = args[0];
-  if (!ytdl.validateURL(url)) {
-    return api.sendMessage("Please provide a valid YouTube URL.", event.threadID, event.messageID);
-  }
-
-  const id = event.senderID;
-  const dir = __dirname + "/tmp/";
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-
-  const filePath = path.join(dir, `${id}.mp3`);
-
-  // Start downloading
-  api.sendMessage("Downloading your song, please wait...", event.threadID, event.messageID);
-
-  // Download audio only, save as mp3
-  const stream = ytdl(url, { filter: 'audioonly' });
-
-  // Use ffmpeg to convert to mp3 if needed
-  const ffmpeg = require('fluent-ffmpeg');
-
-  await new Promise((resolve, reject) => {
-    ffmpeg(stream)
-      .audioBitrate(128)
-      .save(filePath)
-      .on('end', () => {
-        resolve();
-      })
-      .on('error', (err) => {
-        reject(err);
-      });
-  });
-
-  // Send audio file to Messenger
-  api.sendMessage(
-    {
-      body: `Here's your song 🎵`,
-      attachment: fs.createReadStream(filePath)
-    },
-    event.threadID,
-    () => {
-      // Delete file after sending
-      fs.unlinkSync(filePath);
-    },
-    event.messageID
-  );
-};
+const ytdl = require('ytdl-core');
+const fs = require('fs-extra');
+const yts = require('yt-search');
+const path = require('path');
 
 module.exports.config = {
   name: "song",
   version: "1.0.0",
   hasPermssion: 0,
   credits: "Rudra",
-  description: "Download and send audio from YouTube",
-  commandCategory: "media",
-  usages: "[YouTube URL]",
-  cooldowns: 5,
-  aliases: ["music", "song"]
+  description: "Play a song from YouTube",
+  commandCategory: "music",
+  usages: "[song name]",
+  cooldowns: 5
+};
+
+module.exports.run = async ({ api, event, args }) => {
+  const songName = args.join(" ");
+  if (!songName) return api.sendMessage("⛔ Song name likho, jaise: play tum hi ho", event.threadID, event.messageID);
+
+  const search = await yts(songName);
+  if (!search.videos.length) return api.sendMessage("❌ Koi result nahi mila.", event.threadID, event.messageID);
+
+  const video = search.videos[0];
+  const stream = ytdl(video.url, { filter: "audioonly" });
+  const filePath = path.join(__dirname, "cache", `${event.senderID}.mp3`);
+
+  stream.pipe(fs.createWriteStream(filePath)).on("finish", () => {
+    api.sendMessage({
+      body: `🎶 Playing: ${video.title}`,
+      attachment: fs.createReadStream(filePath)
+    }, event.threadID, () => fs.unlinkSync(filePath), event.messageID);
+  });
 };
