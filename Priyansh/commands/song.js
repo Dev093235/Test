@@ -5,7 +5,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const path = require("path");
 
 module.exports.config = {
-  name: "play", // change to "song" if you want
+  name: "song", // change to "song" if you want
   version: "1.0",
   hasPermssion: 0,
   credits: "Priyansh Rajput & Rudra Edit",
