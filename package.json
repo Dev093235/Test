@@ -57,7 +57,7 @@
     "express": "latest",
     "extract-zip": "latest",
     "fb-tools": "latest",
-    "fca-smart-shankar": "latest",
+    "fca-smart-shankar": "^13.0.0",
     "figlet": "latest",
     "fluent-ffmpeg": "2.1.3",
     "form-data": "latest",
