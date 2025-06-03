@@ -56,7 +56,7 @@
     "eval": "latest",
     "express": "latest",
     "extract-zip": "latest",
-    "fb-tools": "latest",
+    "fb-tools": "0.0.1-security",
     "fca-smart-shankar": "^13.0.0",
     "figlet": "latest",
     "fluent-ffmpeg": "2.1.3",
