@@ -1,142 +1,142 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const ytSearch = require("yt-search");
-const https = require("https");
+const fs = require('fs');
+const ytdl = require('ytdl-core');
+const { resolve } = require('path');
 
-function deleteAfterTimeout(filePath, timeout = 5000) {
-  setTimeout(() => {
-    if (fs.existsSync(filePath)) {
-      fs.unlink(filePath, (err) => {
-        if (!err) {
-          console.log(`✅ Deleted file: ${filePath}`);
-        } else {
-          console.error(`❌ Error deleting file: ${err.message}`);
-        }
-      });
-    }
-  }, timeout);
+async function downloadMusicFromYoutube(link, path) {
+    const timestart = Date.now();
+    if (!link) return 'Missing YouTube link';
+
+    return new Promise((resolveFunc, rejectFunc) => {
+        ytdl(link, {
+            filter: format =>
+                format.quality === 'tiny' && format.audioBitrate === 48 && format.hasAudio === true
+        }).pipe(fs.createWriteStream(path))
+            .on("close", async () => {
+                const data = await ytdl.getInfo(link);
+                const result = {
+                    title: data.videoDetails.title,
+                    dur: Number(data.videoDetails.lengthSeconds),
+                    viewCount: data.videoDetails.viewCount,
+                    likes: data.videoDetails.likes,
+                    author: data.videoDetails.author.name,
+                    timestart: timestart
+                };
+                resolveFunc(result);
+            });
+    });
 }
 
-module.exports = {
-  config: {
-    name: "music",
-    version: "2.0.2",
-    hasPermssion: 0,
-    credits: "Mirrykal",
-    description: "Download YouTube song or video",
-    commandCategory: "Media",
-    usages: "[songName] [optional: video]",
-    cooldowns: 5,
-  },
+// 🔒 Credit Lock: Don’t allow modification of credits
+const CREDIT_NAME = "Rudra";
 
-  run: async function ({ api, event, args }) {
-    if (args.length === 0) {
-      return api.sendMessage("⚠️ Gaane ka naam to likho na! 😒", event.threadID);
+module.exports.config = {
+    name: "music",
+    version: "1.0.0",
+    hasPermssion: 0,
+    credits: CREDIT_NAME,
+    description: "Play YouTube songs by link or search keyword",
+    commandCategory: "utility",
+    usages: "[song name | YouTube link]",
+    cooldowns: 0
+};
+
+module.exports.handleReply = async function ({ api, event, handleReply }) {
+    // 🛡️ Check if credits changed
+    if (module.exports.config.credits !== CREDIT_NAME) {
+        return api.sendMessage("❌ Don't change credits! Module by Rudra.", event.threadID, event.messageID);
     }
 
-    const mediaType = args[args.length - 1].toLowerCase() === "video" ? "video" : "audio";
-    const songName = mediaType === "video" ? args.slice(0, -1).join(" ") : args.join(" ");
-
-    const processingMessage = await api.sendMessage(
-      `🔍 "${songName}" dhoondh rahi hoon... Ruko zara! 😏`,
-      event.threadID,
-      null,
-      event.messageID
-    );
+    const axios = require('axios');
+    const { createReadStream, unlinkSync, statSync } = require("fs-extra");
 
     try {
-      // 🔎 **YouTube Search**
-      const searchResults = await ytSearch(songName);
-      if (!searchResults || !searchResults.videos.length) {
-        throw new Error("Kuch nahi mila! Gaane ka naam sahi likho. 😑");
-      }
+        const path = `${__dirname}/cache/1.mp3`;
+        const data = await downloadMusicFromYoutube('https://www.youtube.com/watch?v=' + handleReply.link[event.body - 1], path);
 
-      // 🎵 **Top Result ka URL**
-      const topResult = searchResults.videos[0];
-      const videoUrl = `https://www.youtube.com/watch?v=${topResult.videoId}`;
+        if (fs.statSync(path).size > 26214400)
+            return api.sendMessage('❌ File too large (limit: 25MB)', event.threadID, () => fs.unlinkSync(path), event.messageID);
 
-      // 🖼 **Download Thumbnail**
-      const thumbnailUrl = topResult.thumbnail;
-      const safeTitle = topResult.title.replace(/[^a-zA-Z0-9]/g, "_");
-      const downloadDir = path.join(__dirname, "cache");
-      if (!fs.existsSync(downloadDir)) {
-        fs.mkdirSync(downloadDir, { recursive: true });
-      }
-      const thumbnailPath = path.join(downloadDir, `${safeTitle}.jpg`);
+        api.unsendMessage(handleReply.messageID);
 
-      const thumbnailFile = fs.createWriteStream(thumbnailPath);
-      await new Promise((resolve, reject) => {
-        https.get(thumbnailUrl, (response) => {
-          response.pipe(thumbnailFile);
-          thumbnailFile.on("finish", () => {
-            thumbnailFile.close(resolve);
-          });
-        }).on("error", (error) => {
-          fs.unlinkSync(thumbnailPath);
-          reject(new Error(`Thumbnail download failed: ${error.message}`));
-        });
-      });
+        return api.sendMessage({
+            body: `🎵 Title: ${data.title}\n🎶 Channel: ${data.author}\n⏱️ Duration: ${this.convertHMS(data.dur)}\n👀 Views: ${data.viewCount}\n👍 Likes: ${data.likes}\n⚡ Processing time: ${Math.floor((Date.now() - data.timestart) / 1000)} sec\n\n✨ Powered by Rudra`,
+            attachment: fs.createReadStream(path)
+        }, event.threadID, () => fs.unlinkSync(path), event.messageID);
 
-      // 📩 **Send Thumbnail First**
-      await api.sendMessage(
-        {
-          attachment: fs.createReadStream(thumbnailPath),
-          body: `🎶 **Title:** ${topResult.title}\n👀 ..Thoda sa Wait kro Song load Horha hai 😘`,
-        },
-        event.threadID
-      );
-
-      // 🗑 **Delete Thumbnail After 5 Seconds**
-      deleteAfterTimeout(thumbnailPath, 5000);
-
-      // 🖥 **API Call to YouTube Downloader**
-      const apiUrl = `https://music-api-0.onrender.com/download?url=${encodeURIComponent(videoUrl)}&type=${mediaType}`;
-      const downloadResponse = await axios.get(apiUrl);
-
-      if (!downloadResponse.data.file_url) {
-        throw new Error("Download fail ho gaya. 😭");
-      }
-
-      const downloadUrl = downloadResponse.data.file_url.replace("http:", "https:");
-      const filename = `${safeTitle}.${mediaType === "video" ? "mp4" : "mp3"}`;
-      const downloadPath = path.join(downloadDir, filename);
-
-      // ⬇️ **Download Media File**
-      const file = fs.createWriteStream(downloadPath);
-      await new Promise((resolve, reject) => {
-        https.get(downloadUrl, (response) => {
-          if (response.statusCode === 200) {
-            response.pipe(file);
-            file.on("finish", () => {
-              file.close(resolve);
-            });
-          } else {
-            reject(new Error(`Download fail ho gaya. Status: ${response.statusCode}`));
-          }
-        }).on("error", (error) => {
-          fs.unlinkSync(downloadPath);
-          reject(new Error(`Error downloading file: ${error.message}`));
-        });
-      });
-
-      api.setMessageReaction("✅", event.messageID, () => {}, true);
-
-      // 🎧 **Send the MP3/MP4 File**
-      await api.sendMessage(
-        {
-          attachment: fs.createReadStream(downloadPath),
-          body: `🎵 **Aapka ${mediaType === "video" ? "Video 🎥" : "Gaana 🎧"} taiyaar hai!**\nEnjoy! 😍`,
-        },
-        event.threadID,
-        event.messageID
-      );
-
-      // 🗑 **Auto Delete File After 5 Seconds**
-      deleteAfterTimeout(downloadPath, 5000);
-    } catch (error) {
-      console.error(`❌ Error: ${error.message}`);
-      api.sendMessage(`❌ Error: ${error.message} 😢`, event.threadID, event.messageID);
+    } catch (e) {
+        console.log(e);
     }
-  },
+};
+
+module.exports.convertHMS = function (value) {
+    const sec = parseInt(value, 10);
+    let hours = Math.floor(sec / 3600);
+    let minutes = Math.floor((sec - (hours * 3600)) / 60);
+    let seconds = sec - (hours * 3600) - (minutes * 60);
+
+    if (hours < 10) hours = "0" + hours;
+    if (minutes < 10) minutes = "0" + minutes;
+    if (seconds < 10) seconds = "0" + seconds;
+
+    return (hours !== '00' ? hours + ':' : '') + minutes + ':' + seconds;
+};
+
+module.exports.run = async function ({ api, event, args }) {
+    // 🛡️ Check if credits changed
+    if (module.exports.config.credits !== CREDIT_NAME) {
+        return api.sendMessage("❌ Don't change credits! Module by Rudra.", event.threadID, event.messageID);
+    }
+
+    if (!args.length) return api.sendMessage('❗ Please enter a song name or YouTube link.', event.threadID, event.messageID);
+
+    const keywordSearch = args.join(" ");
+    const path = `${__dirname}/cache/1.mp3`;
+
+    if (fs.existsSync(path)) fs.unlinkSync(path);
+
+    // If input is a direct YouTube link
+    if (keywordSearch.indexOf("https://") === 0) {
+        try {
+            const data = await downloadMusicFromYoutube(keywordSearch, path);
+
+            if (fs.statSync(path).size > 26214400)
+                return api.sendMessage('❌ File too large (limit: 25MB)', event.threadID, () => fs.unlinkSync(path), event.messageID);
+
+            return api.sendMessage({
+                body: `🎵 Title: ${data.title}\n🎶 Channel: ${data.author}\n⏱️ Duration: ${this.convertHMS(data.dur)}\n👀 Views: ${data.viewCount}\n👍 Likes: ${data.likes}\n⚡ Processing time: ${Math.floor((Date.now() - data.timestart) / 1000)} sec\n\n✨ Powered by Rudra`,
+                attachment: fs.createReadStream(path)
+            }, event.threadID, () => fs.unlinkSync(path), event.messageID);
+
+        } catch (e) {
+            console.log(e);
+        }
+    } else {
+        // If input is a keyword search
+        try {
+            const Youtube = require('youtube-search-api');
+            const results = (await Youtube.GetListByKeyword(keywordSearch, false, 6)).items;
+
+            const link = [];
+            let msg = "";
+            results.forEach((value, index) => {
+                link.push(value.id);
+                msg += `${index + 1} ➤ ${value.title} (${value.length.simpleText})\n\n`;
+            });
+
+            return api.sendMessage({
+                body: `🔍 Search results for "${keywordSearch}":\n\n${msg}Reply with the number of the song you want to download.`
+            }, event.threadID, (error, info) => {
+                global.client.handleReply.push({
+                    type: 'reply',
+                    name: this.config.name,
+                    messageID: info.messageID,
+                    author: event.senderID,
+                    link
+                });
+            }, event.messageID);
+
+        } catch (e) {
+            return api.sendMessage(`❌ Search failed, try again.\n${e}`, event.threadID, event.messageID);
+        }
+    }
 };
