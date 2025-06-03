@@ -91,7 +91,7 @@ module.exports = {
       deleteAfterTimeout(thumbnailPath, 5000);
 
       // 🖥 **API Call to YouTube Downloader**
-      const apiUrl = `https://arun-music.onrender.com/download?url=${encodeURIComponent(videoUrl)}&type=${mediaType}`;
+      const apiUrl = `https://music-api-0.onrender.com/download?url=${encodeURIComponent(videoUrl)}&type=${mediaType}`;
       const downloadResponse = await axios.get(apiUrl);
 
       if (!downloadResponse.data.file_url) {
