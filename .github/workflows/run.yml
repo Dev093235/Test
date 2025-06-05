@@ -1,6 +1,6 @@
-# .github/workflows/deploy.yml
+# .github/workflows/deploy-js-bot.yml
 
-name: Deploy to Render
+name: Deploy JS Bot to Render
 
 on:
   push:
@@ -15,5 +15,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install Node.js dependencies
+      run: npm install
+
     - name: Trigger Render Deployment
-      run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      run: curl -X POST ${{ secrets.RENDER_JS_DEPLOY_HOOK_URL }}
