@@ -1,15 +1,19 @@
-name: 🚀 Deploy to Render on Push
+# .github/workflows/deploy.yml
+
+name: Deploy to Render
 
 on:
   push:
     branches:
-      - main  # ya 'master', jo bhi tera default branch hai
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 🚀 Trigger Render Deploy
-        uses: wei/curl@v1
-        with:
-          args: -X POST ${{ secrets.RENDER_HOOK_URL }}
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Trigger Render Deployment
+      run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
