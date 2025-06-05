@@ -58,10 +58,27 @@ module.exports = {
 
       deleteAfterTimeout(thumbPath, 5000);
 
-      // 🔁 Try both APIs
       const apis = [
         `https://youtube-downloader-by-subrata.onrender.com/${mediaType}/?link=${encodeURIComponent(videoUrl)}`,
-        `https://rudra-music-py.onrender.com/download?url=${encodeURIComponent(videoUrl)}&type=${mediaType}`
+        `https://rudra-music-py.onrender.com/download?url=${encodeURIComponent(videoUrl)}&type=${mediaType}`,
+        `https://youtube-download-api.matheusishiyama.repl.co/${mediaType === 'audio' ? 'mp3' : 'mp4'}/?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-api-1.onrender.com/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://ytdl-api-v1.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-dlp-api.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-downloader-api-omega.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://ytb-api-bice.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://ytconvert-api.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://ytgrabber.vercel.app/api/download?type=${mediaType}&url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-downloader-rho-three.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-downloader-psi.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-download-free.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-audio-dl.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-down-api.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-extractor-api.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-fast-api.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://ytdl-universal.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://yt-api-basic.vercel.app/api/${mediaType}?url=${encodeURIComponent(videoUrl)}`,
+        `https://ytloader-api.vercel.app/${mediaType}?url=${encodeURIComponent(videoUrl)}`
       ];
 
       let fileUrl;
