@@ -17,39 +17,44 @@ module.exports.run = async function ({ api, event }) {
 
   try {
     const threadInfo = await api.getThreadInfo(event.threadID);
-    const botID = api.getCurrentUserID();
-    const members = threadInfo.participantIDs.filter(id => id !== botID && id !== event.senderID);
+    let members = threadInfo.participantIDs;
 
-    if (members.length < 1)
-      return api.sendMessage("⚠️ Pair banane ke liye group me aur log bhi hone chahiye!", event.threadID);
+    // Check if group has at least 2 members
+    if (members.length < 2) {
+      return api.sendMessage("😅 Sirf tum hi ho group me... pairing kaise ho bhai?", event.threadID);
+    }
 
-    const lover1 = event.senderID;
+    // Random 2 users (excluding repeats)
+    const lover1 = members[Math.floor(Math.random() * members.length)];
     let lover2 = members[Math.floor(Math.random() * members.length)];
+    while (lover2 === lover1) lover2 = members[Math.floor(Math.random() * members.length)];
 
     const userInfo = await api.getUserInfo([lover1, lover2]);
-    const name1 = userInfo[lover1]?.name || "User1";
-    const name2 = userInfo[lover2]?.name || "User2";
+    const name1 = userInfo[lover1].name;
+    const name2 = userInfo[lover2].name;
     const shipName = `${name1.slice(0, 3)}💖${name2.slice(-3)}`.replace(/\s/g, "");
 
+    // Anime image + voice
     const animeLinks = [
       "https://i.imgur.com/mkln5uE.jpeg",
       "https://i.imgur.com/yujmJm2.jpeg",
       "https://i.imgur.com/Wff7u4n.jpeg"
     ];
+    const chosenImage = animeLinks[Math.floor(Math.random() * animeLinks.length)];
     const voiceLink = "https://files.catbox.moe/vhxfwx.mp3";
 
-    const chosenImage = animeLinks[Math.floor(Math.random() * animeLinks.length)];
+    const img = await axios.get(chosenImage, { responseType: "stream" });
+    const voice = await axios.get(voiceLink, { responseType: "stream" });
 
-    const [imgRes, voiceRes] = await Promise.all([
-      axios.get(chosenImage, { responseType: "stream" }),
-      axios.get(voiceLink, { responseType: "stream" })
-    ]);
+    // Download both files
+    await new Promise((resolve, reject) => {
+      img.data.pipe(fs.createWriteStream(pathImg)).on("finish", resolve).on("error", reject);
+    });
+    await new Promise((resolve, reject) => {
+      voice.data.pipe(fs.createWriteStream(pathSound)).on("finish", resolve).on("error", reject);
+    });
 
-    await Promise.all([
-      new Promise((res) => imgRes.data.pipe(fs.createWriteStream(pathImg)).on("close", res)),
-      new Promise((res) => voiceRes.data.pipe(fs.createWriteStream(pathSound)).on("close", res))
-    ]);
-
+    // Create message
     const msg = `💞 𝗣𝗔𝗜𝗥 𝗔𝗟𝗘𝗥𝗧 💞\n━━━━━━━━━━━━━━\n` +
       `👩🏻‍🤝‍👨🏼 ${name1} ❤️ ${name2}\n\n` +
       `🌸 Ek naya rishta... do dilon ka milan...\n` +
@@ -70,12 +75,12 @@ module.exports.run = async function ({ api, event }) {
         fs.createReadStream(pathSound)
       ]
     }, event.threadID, () => {
-      if (fs.existsSync(pathImg)) fs.unlinkSync(pathImg);
-      if (fs.existsSync(pathSound)) fs.unlinkSync(pathSound);
+      fs.unlinkSync(pathImg);
+      fs.unlinkSync(pathSound);
     });
 
   } catch (err) {
-    console.error("❌ Rudra Pair Error:", err);
+    console.error("❌ Pair error:", err);
     return api.sendMessage("🚫 Error: Pair banate waqt kuch gadbad ho gayi bhai 😢", event.threadID);
   }
 };
