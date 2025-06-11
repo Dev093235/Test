@@ -1,124 +1,76 @@
 module.exports.config = {
   name: "pair",
-  version: "1.0.0",
+  version: "6.0.0",
   hasPermssion: 0,
-  credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
-  description: "🔥 Ultimate Swag Pairing Command 🔥",
-  commandCategory: "Fun",
-  usages: "",
-  dependencies: {
-    "axios": "",
-    "fs-extra": "",
-    "canvas": ""
-  },
-  cooldowns: 0
+  credits: "Rudra 24K",
+  description: "Pair two users with swag, anime photo & hindi voice line",
+  commandCategory: "love",
+  cooldowns: 5
 };
 
-module.exports.run = async function ({ api, event, Users, Threads }) {
-  const fs = global.nodemodule["fs-extra"];
-  const axios = global.nodemodule["axios"];
-  const { loadImage, createCanvas } = require("canvas");
-  
-  const pathImg = __dirname + "/cache/pairResult.png";
-  const pathAvt1 = __dirname + "/cache/avt1.png";
-  const pathAvt2 = __dirname + "/cache/avt2.png";
+module.exports.run = async function ({ api, event }) {
+  const axios = require("axios");
+  const fs = require("fs-extra");
+  const pathImg = __dirname + `/cache/rudra_pair.jpg`;
+  const pathSound = __dirname + `/cache/rudra_voice.mp3`;
 
-  const senderID = event.senderID;
-  const senderName = await Users.getNameUser(senderID);
-
-  // Get all users except sender and bot
   const threadInfo = await api.getThreadInfo(event.threadID);
-  let members = threadInfo.userInfo.filter(u => u.id != senderID && u.id != api.getCurrentUserID());
+  const members = threadInfo.userInfo
+    .filter(u => u.gender !== undefined && !u.isBlocked && u.type !== "INBOX")
+    .map(u => u.id)
+    .filter(id => id != api.getCurrentUserID());
 
-  if (members.length === 0) {
-    return api.sendMessage("😔 Arre bhai, akele hi ho is group mein! Koi match nahi mila. Thodi der baad try karo ya naye log lao!", event.threadID, event.messageID);
-  }
+  if (members.length < 2)
+    return api.sendMessage("⚠️ Pair banane ke liye kam se kam 2 dil zaruri hai!", event.threadID);
 
-  // Random partner pick
-  const partner = members[Math.floor(Math.random() * members.length)];
-  const partnerName = await Users.getNameUser(partner.id);
+  const lover1 = members[Math.floor(Math.random() * members.length)];
+  let lover2 = members[Math.floor(Math.random() * members.length)];
+  while (lover2 === lover1) lover2 = members[Math.floor(Math.random() * members.length)];
 
-  // Compatibility score random with swag
-  const scores = [69, 70, 80, 90, 99, 100, 88, 77];
-  const compatibility = scores[Math.floor(Math.random() * scores.length)];
+  const userInfo = await api.getUserInfo([lover1, lover2]);
+  const name1 = userInfo[lover1].name;
+  const name2 = userInfo[lover2].name;
+  const shipName = `${name1.slice(0, 3)}💖${name2.slice(-3)}`.replace(/\s/g, "");
 
-  // Cool backgrounds - tu apne hisab se add kar sakta hai
-  const backgrounds = [
-    "https://i.postimg.cc/wjJ29HRB/background1.png",
-    "https://i.postimg.cc/zf4Pnshv/background2.png",
-    "https://i.postimg.cc/5tXRQ46D/background3.png"
+  const animeLinks = [
+    "https://i.imgur.com/mkln5uE.jpeg",
+    "https://i.imgur.com/yujmJm2.jpeg",
+    "https://i.imgur.com/Wff7u4n.jpeg",
+    "https://i.imgur.com/qxPc39z.jpeg",
+    "https://i.imgur.com/3gYjJ5A.jpeg"
   ];
-  const bgUrl = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  const chosenImage = animeLinks[Math.floor(Math.random() * animeLinks.length)];
+  const soundURL = "https://files.catbox.moe/vhxfwx.mp3"; // Hindi romantic voice
 
-  // Download avatars & background
-  const getImage = async (url, path) => {
-    const res = await axios.get(url, { responseType: "arraybuffer" });
-    await fs.writeFileSync(path, Buffer.from(res.data, "utf-8"));
-  };
+  // Download image
+  const imgRes = await axios.get(chosenImage, { responseType: "stream" });
+  imgRes.data.pipe(fs.createWriteStream(pathImg));
 
-  await getImage(`https://graph.facebook.com/${senderID}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, pathAvt1);
-  await getImage(`https://graph.facebook.com/${partner.id}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, pathAvt2);
-  await getImage(bgUrl, pathImg);
+  // Download sound
+  const soundRes = await axios.get(soundURL, { responseType: "stream" });
+  soundRes.data.pipe(fs.createWriteStream(pathSound)).on("close", () => {
+    const msg = `💞 𝗣𝗔𝗜𝗥 𝗔𝗟𝗘𝗥𝗧 💞\n━━━━━━━━━━━━━━\n` +
+      `👩🏻‍🤝‍👨🏼 ${name1} ❤️ ${name2}\n\n` +
+      `🌸 Ek naya rishta... do dilon ka milan...\n` +
+      `🔗 𝗟𝗢𝗩𝗘 𝗕𝗢𝗡𝗗: ${shipName}\n\n` +
+      `🎧 "Yeh rishta na taqdeer ne banaya... na kismet ne likha...\n` +
+      `💫 Is prem kahani ka kalam tha Rudra ke haathon mein ✍️"\n\n` +
+      `👑 Rudra ka faisla final hota hai... pairing ho gayi bhai, ab to mohabbat pakki! 🔥\n` +
+      `🌟 Anime ka feel, awaaz ka jaadu, aur Rudra ka tashan — sab kuch ek saath 💘\n━━━━━━━━━━━━━━`;
 
-  // Canvas setup
-  const baseImg = await loadImage(pathImg);
-  const avatar1 = await loadImage(pathAvt1);
-  const avatar2 = await loadImage(pathAvt2);
-
-  const canvas = createCanvas(baseImg.width, baseImg.height);
-  const ctx = canvas.getContext("2d");
-
-  // Draw background
-  ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-
-  // Draw avatars with circle mask
-  function drawCircleImage(img, x, y, size) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(img, x, y, size, size);
-    ctx.restore();
-  }
-  drawCircleImage(avatar1, 130, 150, 280);
-  drawCircleImage(avatar2, 900, 150, 280);
-
-  // Draw flashy heart
-  ctx.font = "140px Arial";
-  ctx.fillStyle = "#ff2e63";
-  ctx.shadowColor = "#ff6f91";
-  ctx.shadowBlur = 30;
-  ctx.textAlign = "center";
-  ctx.fillText("💖", canvas.width / 2, 350);
-
-  // Compatibility text with style
-  ctx.shadowColor = "#000000";
-  ctx.shadowBlur = 10;
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 60px Poppins, Arial";
-  ctx.fillText(`Compatibility Score: ${compatibility}%`, canvas.width / 2, 530);
-
-  // Final save
-  const buffer = canvas.toBuffer();
-  fs.writeFileSync(pathImg, buffer);
-
-  // Clean up avatars
-  fs.removeSync(pathAvt1);
-  fs.removeSync(pathAvt2);
-
-  // Send message with swag
-  return api.sendMessage({
-    body: `✨🔥 Wah bhai! Ek dum 🔥🔥🔥\n\n` +
-          `🎯 ${senderName} ❤️ ${partnerName}\n` +
-          `💘 Compatibility: ${compatibility}%\n\n` +
-          `“Dil ke kone mein ek jagah hamesha reserved hai tumhare liye...”\n\n` +
-          `───────────────\n` +
-          `⚡ Powered by 𝗥𝘂𝗱𝗿𝗮 𝗕𝗼𝘁 ⚡\n` +
-          `───────────────\n` +
-          `Aage badho, aur pair command se aur matches dhundo!`,
-
-    mentions: [{ id: partner.id, tag: partnerName }],
-    attachment: fs.createReadStream(pathImg)
-  }, event.threadID, () => fs.unlinkSync(pathImg), event.messageID);
+    api.sendMessage({
+      body: msg,
+      mentions: [
+        { id: lover1, tag: name1 },
+        { id: lover2, tag: name2 }
+      ],
+      attachment: [
+        fs.createReadStream(pathImg),
+        fs.createReadStream(pathSound)
+      ]
+    }, event.threadID, () => {
+      fs.unlinkSync(pathImg);
+      fs.unlinkSync(pathSound);
+    });
+  });
 };
