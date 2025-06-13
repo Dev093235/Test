@@ -4,58 +4,48 @@ const path = require("path");
 
 module.exports.config = {
   name: "coupledp",
-  version: "2.0.0",
+  version: "1.0.0",
   hasPermssion: 0,
   credits: "Rudra",
-  description: "Stylish Couple DP fetcher with Rudra Swag 💖",
+  description: "Fetch couple dp images from Google search",
   commandCategory: "fun",
-  usages: "+coupledp name1 name2 - count",
+  usages: "+coupledp your+query - number",
   cooldowns: 3
 };
 
 module.exports.run = async ({ api, event, args }) => {
-  const input = args.join(" ");
-  if (!input.includes("-")) {
-    return api.sendMessage("⚠️ Usage: +coupledp mohit riya - 3", event.threadID, event.messageID);
-  }
+  const q = args.join(" ");
+  if (!q.includes("-")) return api.sendMessage("📌 Usage: +coupledp your query - number", event.threadID);
 
-  const searchTerm = input.substring(0, input.indexOf("-")).trim() + " couple dp";
-  const count = parseInt(input.split("-").pop().trim()) || 3;
+  const query = q.substring(0, q.indexOf("-")).trim();
+  const count = parseInt(q.split("-").pop().trim()) || 1;
 
+  const url = `https://rudra-pintrest-server.onrender.com/dp?q=${encodeURIComponent(query)}&n=${count}`;
   try {
-    const res = await axios.get(`https://rudra-pintrest-server.onrender.com/dp?q=${encodeURIComponent(searchTerm)}&n=${count}`);
-    const imageUrls = res.data?.data || [];
+    const res = await axios.get(url);
+    const images = res.data.data;
 
-    if (!imageUrls.length) {
-      return api.sendMessage("❌ Sorry! Koi DP nahi mili. Try another keyword.", event.threadID, event.messageID);
-    }
-
-    const files = [];
-
-    for (let i = 0; i < imageUrls.length; i++) {
-      const imgUrl = imageUrls[i];
-      const imgData = (await axios.get(imgUrl, { responseType: "arraybuffer" })).data;
+    let imgData = [];
+    for (let i = 0; i < images.length; i++) {
       const imgPath = path.join(__dirname, "cache", `dp${i}.jpg`);
-
-      fs.ensureDirSync(path.dirname(imgPath));
-      fs.writeFileSync(imgPath, imgData);
-      files.push(fs.createReadStream(imgPath));
+      const imgBuffer = (await axios.get(images[i], { responseType: "arraybuffer" })).data;
+      fs.writeFileSync(imgPath, imgBuffer);
+      imgData.push(fs.createReadStream(imgPath));
     }
 
-    const term = searchTerm.charAt(0).toUpperCase() + searchTerm.slice(1);
-
-    await api.sendMessage({
-      body: `📸 Here's your *Couple DP* (${term})\n\n✨ Powered by 𝙍𝙪𝙙𝙧𝙖 💫`,
-      attachment: files
+    api.sendMessage({
+      body: `📷 Here's your *${count}* Couple DP:\n🔍 ${query}`,
+      attachment: imgData
     }, event.threadID, event.messageID);
 
-    // Clean up
-    for (let i = 0; i < imageUrls.length; i++) {
-      fs.unlinkSync(path.join(__dirname, "cache", `dp${i}.jpg`));
+    // Clean cache
+    for (let i = 0; i < images.length; i++) {
+      const imgPath = path.join(__dirname, "cache", `dp${i}.jpg`);
+      fs.unlinkSync(imgPath);
     }
 
   } catch (err) {
-    console.error("❌ Error in coupledp:", err.message);
-    return api.sendMessage("🚫 DP laate waqt kuch gadbad ho gayi. Try again later!", event.threadID, event.messageID);
+    console.log(err.message);
+    api.sendMessage("❌ Failed to fetch couple DP. Try again.", event.threadID, event.messageID);
   }
 };
