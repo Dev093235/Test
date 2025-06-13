@@ -1,93 +1,105 @@
-const fs = require("fs-extra");
-const axios = require("axios");
-const path = require("path");
-
 module.exports.config = {
   name: "pair",
-  version: "6.0.2",
+  version: "1.0.0",
   hasPermssion: 0,
-  credits: "Rudra 24K",
-  description: "Pair two users with swag, anime photo & hindi voice line",
+  credits: "Rudra X Priyansh",
+  description: "Ye jodi likhi hai bhagwan ne - Kalm tha Rudra 👑",
   commandCategory: "love",
-  cooldowns: 5
+  cooldowns: 2,
+  dependencies: {
+    "axios": "",
+    "fs-extra": "",
+    "canvas": ""
+  }
 };
 
-module.exports.run = async function ({ api, event }) {
-  const cachePath = path.join(__dirname, "cache");
-  const imgPath = path.join(cachePath, "rudra_pair.jpg");
-  const voicePath = path.join(cachePath, "rudra_voice.mp3");
+module.exports.run = async function ({ Users, Threads, api, event }) {
+  const fs = require("fs-extra");
+  const axios = require("axios");
+  const { createCanvas, loadImage } = require("canvas");
 
-  // ✅ Ensure cache folder exists
-  if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath);
+  const path = __dirname + `/cache`;
+  const id1 = event.senderID;
+  const name1 = await Users.getNameUser(id1);
+  const threadInfo = await api.getThreadInfo(event.threadID);
+  const all = threadInfo.userInfo;
+  const botID = api.getCurrentUserID();
+  const gender1 = all.find(u => u.id == id1)?.gender || "UNKNOWN";
 
-  try {
-    const threadInfo = await api.getThreadInfo(event.threadID);
-    const members = threadInfo.participantIDs.filter(id => id != api.getCurrentUserID());
-
-    if (members.length < 2) return api.sendMessage("⚠️ Kam se kam 2 active users hone chahiye pairing ke liye!", event.threadID);
-
-    const lover1 = members[Math.floor(Math.random() * members.length)];
-    let lover2 = members[Math.floor(Math.random() * members.length)];
-    while (lover2 === lover1) lover2 = members[Math.floor(Math.random() * members.length)];
-
-    const userInfo = await api.getUserInfo([lover1, lover2]);
-    const name1 = userInfo[lover1].name;
-    const name2 = userInfo[lover2].name;
-    const shipName = `${name1.slice(0, 3)}💖${name2.slice(-3)}`.replace(/\s/g, "");
-
-    const animeLinks = [
-      "https://i.imgur.com/mkln5uE.jpeg",
-      "https://i.imgur.com/yujmJm2.jpeg",
-      "https://i.imgur.com/Wff7u4n.jpeg"
-    ];
-    const voiceLink = "https://files.catbox.moe/vhxfwx.mp3";
-    const chosenImage = animeLinks[Math.floor(Math.random() * animeLinks.length)];
-
-    const imgRes = await axios.get(chosenImage, { responseType: "stream" });
-    const voiceRes = await axios.get(voiceLink, { responseType: "stream" });
-
-    const writeImg = new Promise((res, rej) => {
-      const stream = fs.createWriteStream(imgPath);
-      imgRes.data.pipe(stream);
-      stream.on("finish", res);
-      stream.on("error", rej);
-    });
-
-    const writeVoice = new Promise((res, rej) => {
-      const stream = fs.createWriteStream(voicePath);
-      voiceRes.data.pipe(stream);
-      stream.on("finish", res);
-      stream.on("error", rej);
-    });
-
-    await Promise.all([writeImg, writeVoice]);
-
-    const msg = `💞 𝗣𝗔𝗜𝗥 𝗔𝗟𝗘𝗥𝗧 💞\n━━━━━━━━━━━━━━\n` +
-      `👩🏻‍🤝‍👨🏼 ${name1} ❤️ ${name2}\n\n` +
-      `🌸 Ek naya rishta... do dilon ka milan...\n` +
-      `🔗 𝗟𝗢𝗩𝗘 𝗕𝗢𝗡𝗗: ${shipName}\n\n` +
-      `🎧 "Yeh rishta na taqdeer ne banaya... na kismet ne likha...\n` +
-      `💫 Is prem kahani ka kalam tha Rudra ke haathon mein ✍️"\n\n` +
-      `👑 Rudra ka faisla final hota hai... pairing ho gayi bhai, ab to mohabbat pakki! 🔥\n` +
-      `🌟 Anime ka feel, awaaz ka jaadu, aur Rudra ka tashan — sab kuch ek saath 💘\n━━━━━━━━━━━━━━`;
-
-    api.sendMessage({
-      body: msg,
-      mentions: [
-        { id: lover1, tag: name1 },
-        { id: lover2, tag: name2 }
-      ],
-      attachment: [
-        fs.createReadStream(imgPath),
-        fs.createReadStream(voicePath)
-      ]
-    }, event.threadID, () => {
-      fs.unlinkSync(imgPath);
-      fs.unlinkSync(voicePath);
-    });
-
-  } catch (err) {
-    console.error("❌ Pair error:", err);
-    api.sendMessage("🚫 Error: Pair banate waqt kuch gadbad ho gayi bhai 😢", event.threadID);
+  let candidates = [];
+  for (const u of all) {
+    if (u.id !== id1 && u.id !== botID) {
+      if (gender1 === "MALE" && u.gender === "FEMALE") candidates.push(u.id);
+      else if (gender1 === "FEMALE" && u.gender === "MALE") candidates.push(u.id);
+      else if (gender1 === "UNKNOWN") candidates.push(u.id);
+    }
   }
+
+  if (candidates.length === 0) return api.sendMessage("❌ Koi jodi nahi mili bhai 😔", event.threadID);
+
+  const id2 = candidates[Math.floor(Math.random() * candidates.length)];
+  const name2 = await Users.getNameUser(id2);
+
+  // 💫 Stylish elements
+  const backgrounds = [
+    "https://i.postimg.cc/wjJ29HRB/background1.png",
+    "https://i.postimg.cc/zf4Pnshv/background2.png",
+    "https://i.postimg.cc/5tXRQ46D/background3.png"
+  ];
+  const shayaris = [
+    "💫 Mohabbat inki taqdeer ban chuki hai 💖",
+    "💘 In dono ki jodi pe rab bhi fakr kare 🙏",
+    "🌟 Ishq bhi sharma jaaye inke aage 😍",
+    "👑 Dil se dil ka milna yeh toh asmaanon ka rishta hai 🕊️",
+    "🔥 Ruh ka milan hai yeh, sirf jism ka nahi 💑",
+    "🌸 Inka rishta toh janmon ka hai 💍",
+    "💌 Pyaar bhi keh raha hai: 'Yeh dono ek doosre ke liye bane hain' 🌈",
+    "💎 Jahan tak mohabbat ka asar hai, wahan tak inka naam chalega 💥",
+    "🫀 Dil, dua aur kismat — sab milein hain in dono ke naam 💘"
+  ];
+  const ratings = ["💘 100%", "💫 99.9%", "🔥 98%", "❤️ 101%", "🌟 97.5%", "👑 96.69%", "🕊️ 100.0%"];
+
+  const header = "✨ Ye jodi likhi hai bhagwan ne ✨\n💢 Kalm tha... Rudra 👑";
+  const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+  const shayari = shayaris[Math.floor(Math.random() * shayaris.length)];
+  const rating = ratings[Math.floor(Math.random() * ratings.length)];
+
+  const pathImg = `${path}/pairbg.png`;
+  const pathAvt1 = `${path}/avt1.png`;
+  const pathAvt2 = `${path}/avt2.png`;
+
+  // 📥 Get profile pics and background
+  const avt1 = (await axios.get(`https://graph.facebook.com/${id1}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
+  fs.writeFileSync(pathAvt1, Buffer.from(avt1, "utf-8"));
+
+  const avt2 = (await axios.get(`https://graph.facebook.com/${id2}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" })).data;
+  fs.writeFileSync(pathAvt2, Buffer.from(avt2, "utf-8"));
+
+  const bgImage = (await axios.get(bg, { responseType: "arraybuffer" })).data;
+  fs.writeFileSync(pathImg, Buffer.from(bgImage, "utf-8"));
+
+  // 🖼️ Create final image
+  const baseImg = await loadImage(pathImg);
+  const avatar1 = await loadImage(pathAvt1);
+  const avatar2 = await loadImage(pathAvt2);
+  const canvas = createCanvas(baseImg.width, baseImg.height);
+  const ctx = canvas.getContext("2d");
+
+  ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(avatar1, 100, 150, 300, 300); // position 1
+  ctx.drawImage(avatar2, 900, 150, 300, 300); // position 2
+
+  const finalBuffer = canvas.toBuffer();
+  fs.writeFileSync(pathImg, finalBuffer);
+
+  // 🧹 Cleanup
+  fs.removeSync(pathAvt1);
+  fs.removeSync(pathAvt2);
+
+  // 📨 Send message
+  return api.sendMessage({
+    body: `${header}\n━━━━━━━━━━━━━━\n💑 ${name1} ❤️ ${name2}\n${shayari}\n❤️ Compatibility: ${rating}\n━━━━━━━━━━━━━━\n🔱 Powered by Rudra`,
+    mentions: [{ tag: name2, id: id2 }],
+    attachment: fs.createReadStream(pathImg)
+  }, event.threadID, () => fs.unlinkSync(pathImg), event.messageID);
 };
