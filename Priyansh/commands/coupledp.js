@@ -1,68 +1,91 @@
-const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
-
 module.exports.config = {
   name: "coupledp",
-  version: "1.0.6",
+  version: "1.0.0",
   hasPermssion: 0,
   credits: "Rudra",
-  description: "Stylish Pinterest-style couple DPs",
-  commandCategory: "fun",
+  description: "Send random stylish Couple DP",
+  commandCategory: "Random-IMG",
   usages: "coupledp",
-  cooldowns: 3
+  cooldowns: 2,
+  dependencies: {
+    "request": "",
+    "fs-extra": "",
+    "axios": ""
+  }
 };
 
-const expectedCredits = "Rudra";
-if (module.exports.config.credits !== expectedCredits) {
-  throw new Error("🔒 Code tampered — Locked by Rudra.");
-}
-
 module.exports.run = async ({ api, event }) => {
-  const links = [
-    "https://i.imgur.com/JB8sLhD.jpg", "https://i.imgur.com/KoNuCzO.jpg",
-    "https://i.imgur.com/wW7tJHk.jpg", "https://i.imgur.com/pLbDUbl.jpg",
-    "https://i.imgur.com/tbmjaSG.jpg", "https://i.imgur.com/GErpYoG.jpg",
-    "https://i.imgur.com/AxJYklx.jpg", "https://i.imgur.com/ctSukqB.jpg",
-    "https://i.imgur.com/DPOueUv.jpg", "https://i.imgur.com/dMdOQv3.jpg",
-    "https://i.imgur.com/4WFK4ep.jpg", "https://i.imgur.com/vnMi7aH.jpg",
-    "https://i.imgur.com/1oQutlv.jpg", "https://i.imgur.com/tK6UUXz.jpg",
-    "https://i.imgur.com/KHKsJ2j.jpg", "https://i.imgur.com/h2Ae7pT.jpg",
-    "https://i.imgur.com/gzCiyZZ.jpg", "https://i.imgur.com/z9cLepB.jpg",
-    "https://i.imgur.com/KI0RL4d.jpg", "https://i.imgur.com/Xozdkfe.jpg",
-    "https://i.imgur.com/QzAeCrO.jpg", "https://i.imgur.com/7Xw7FPG.jpg",
-    "https://i.imgur.com/Tcx7Y0D.jpg", "https://i.imgur.com/g1S2jv5.jpg",
-    "https://i.imgur.com/NWUlQfH.jpg", "https://i.imgur.com/YYZZVq4.jpg",
-    "https://i.imgur.com/SZ8Ttpx.jpg", "https://i.imgur.com/kftkXZw.jpg",
-    "https://i.imgur.com/pDCo7hq.jpg", "https://i.imgur.com/ekOhb3E.jpg",
-    "https://i.imgur.com/M7LjkNv.jpg", "https://i.imgur.com/cg2L9fC.jpg",
-    "https://i.imgur.com/O9JhHms.jpg", "https://i.imgur.com/JkK1Z9m.jpg",
-    "https://i.imgur.com/ko2vLpj.jpg", "https://i.imgur.com/Eag5JBy.jpg",
-    "https://i.imgur.com/t5kzJjh.jpg", "https://i.imgur.com/Ikhtv95.jpg",
-    "https://i.imgur.com/4AvRIok.jpg", "https://i.imgur.com/J1zSUEj.jpg",
-    "https://i.imgur.com/04Dc9rp.jpg", "https://i.imgur.com/lACXZ3S.jpg",
-    "https://i.imgur.com/ZLgvdRi.jpg", "https://i.imgur.com/YwDkBT1.jpg",
-    "https://i.imgur.com/9N7roOY.jpg", "https://i.imgur.com/1RBmIGL.jpg",
-    "https://i.imgur.com/TLsy7Uz.jpg", "https://i.imgur.com/c9mRp2G.jpg",
-    "https://i.imgur.com/9wX60Ld.jpg", "https://i.imgur.com/yy0xqgK.jpg",
-    "https://i.imgur.com/f2E9WaX.jpg", "https://i.imgur.com/P48cdYD.jpg"
+  const axios = global.nodemodule["axios"];
+  const fs = global.nodemodule["fs-extra"];
+  const request = global.nodemodule["request"];
+
+  const approvedCredit = "Rudra";
+  if (module.exports.config.credits !== approvedCredit) {
+    return api.sendMessage("⚠️ Permission Denied: Do not change credits. Powered by Rudra 🔐", event.threadID, event.messageID);
+  }
+
+  const link = [
+    "https://i.imgur.com/qwYcYzA.jpg",
+    "https://i.imgur.com/IfLjNGU.jpg",
+    "https://i.imgur.com/oLhivlR.jpg",
+    "https://i.imgur.com/Av6vjSc.jpg",
+    "https://i.imgur.com/UvdtrED.jpg",
+    "https://i.imgur.com/f6PzDsM.jpg",
+    "https://i.imgur.com/o3pMbAm.jpg",
+    "https://i.imgur.com/ZUZiKWa.jpg",
+    "https://i.imgur.com/vxqGGbi.jpg",
+    "https://i.imgur.com/BX8KcrP.jpg",
+    "https://i.imgur.com/EbHCSn8.jpg",
+    "https://i.imgur.com/TuW6mYe.jpg",
+    "https://i.imgur.com/0O9EGjB.jpg",
+    "https://i.imgur.com/L2Qke3s.jpg",
+    "https://i.imgur.com/NKfqMkx.jpg",
+    "https://i.imgur.com/bbYgF3o.jpg",
+    "https://i.imgur.com/zZVRtG0.jpg",
+    "https://i.imgur.com/Up9uLZw.jpg",
+    "https://i.imgur.com/EDBtTOz.jpg",
+    "https://i.imgur.com/D9RrDGN.jpg",
+    "https://i.imgur.com/q6fUEB1.jpg",
+    "https://i.imgur.com/Zz0kaWa.jpg",
+    "https://i.imgur.com/2n0AFOA.jpg",
+    "https://i.imgur.com/3CzXV27.jpg",
+    "https://i.imgur.com/hFCFQdN.jpg",
+    "https://i.imgur.com/jJ7EiFd.jpg",
+    "https://i.imgur.com/CYtHrHv.jpg",
+    "https://i.imgur.com/SB1TXVP.jpg",
+    "https://i.imgur.com/oY0Ux8u.jpg",
+    "https://i.imgur.com/Pn5zY5U.jpg",
+    "https://i.imgur.com/Wwe4v8l.jpg",
+    "https://i.imgur.com/3IPZz1A.jpg",
+    "https://i.imgur.com/jEnGxzm.jpg",
+    "https://i.imgur.com/86azMxS.jpg",
+    "https://i.imgur.com/Z62RiFl.jpg",
+    "https://i.imgur.com/s0HGxUo.jpg",
+    "https://i.imgur.com/AkblEUm.jpg",
+    "https://i.imgur.com/JUeN2vn.jpg",
+    "https://i.imgur.com/wibv3En.jpg",
+    "https://i.imgur.com/jkzClvT.jpg",
+    "https://i.imgur.com/I0ayF2e.jpg",
+    "https://i.imgur.com/gOhHLs4.jpg",
+    "https://i.imgur.com/98LPcAF.jpg",
+    "https://i.imgur.com/ZVtk9vD.jpg",
+    "https://i.imgur.com/qnvAO7r.jpg",
+    "https://i.imgur.com/X2YRTpv.jpg",
+    "https://i.imgur.com/sIoWBnB.jpg",
+    "https://i.imgur.com/HVEYe6x.jpg",
+    "https://i.imgur.com/J7zUivR.jpg",
+    "https://i.imgur.com/YvDfjSM.jpg"
   ];
 
-  const url = links[Math.floor(Math.random() * links.length)];
-  const cachePath = path.join(__dirname, "cache");
-  const filePath = path.join(cachePath, "couple.jpg");
+  const imgPath = __dirname + "/cache/couple.jpg";
+  const selectedImg = link[Math.floor(Math.random() * link.length)];
 
-  try {
-    fs.ensureDirSync(cachePath);
-    const img = (await axios.get(url, { responseType: "arraybuffer" })).data;
-    fs.writeFileSync(filePath, img);
+  const callback = () => {
+    api.sendMessage({
+      body: `💑 Here's your lovely *Couple DP* 💘\n\n🖤 Powered by Rudra`,
+      attachment: fs.createReadStream(imgPath)
+    }, event.threadID, () => fs.unlinkSync(imgPath), event.messageID);
+  };
 
-    return api.sendMessage({
-      body: `💑 Here's your lovely *Couple DP* 💘\n\n🖤 𝗣𝗼𝘄𝗲𝗿𝗲𝗱 𝗯𝘆 𝗥𝘂𝗱𝗿𝗮`,
-      attachment: fs.createReadStream(filePath)
-    }, event.threadID, () => fs.unlinkSync(filePath), event.messageID);
-  } catch (err) {
-    console.log("❌ Error fetching image:", err.message);
-    return api.sendMessage("⚠️ DP load failed. Try again later.", event.threadID, event.messageID);
-  }
+  return request(encodeURI(selectedImg)).pipe(fs.createWriteStream(imgPath)).on("close", callback);
 };
