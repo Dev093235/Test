@@ -1,73 +1,58 @@
-const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
-const moment = require("moment-timezone");
-
 module.exports.config = {
-  name: "leave",
-  eventType: ["log:unsubscribe"],
-  version: "4.0.0",
-  credits: "Rudra",
-  description: "Send desi-style leave message (smartly detects bhag gaya or bhaga diya)",
+	name: "leave",
+	eventType: ["log:unsubscribe"],
+	version: "1.0.0",
+	credits: "𝙋𝙧𝙞𝙮𝙖𝙣𝙨𝙝 𝙍𝙖𝙟𝙥𝙪𝙩",
+	description: "Notify the Bot or the person leaving the group with a random gif/photo/video",
+	dependencies: {
+		"fs-extra": "",
+		"path": ""
+	}
 };
 
-module.exports.run = async function ({ api, event, Users }) {
-  const { threadID, logMessageData, author } = event;
-  const userID = logMessageData.leftParticipantFbId;
+module.exports.onLoad = function () {
+    const { existsSync, mkdirSync } = global.nodemodule["fs-extra"];
+    const { join } = global.nodemodule["path"];
 
-  // Ignore if bot left
-  if (userID == api.getCurrentUserID()) return;
+	const path = join(__dirname, "cache", "leaveGif", "randomgif");
+	if (existsSync(path)) mkdirSync(path, { recursive: true });	
 
-  const name = global.data.userName.get(userID) || await Users.getNameUser(userID);
-  const time = moment.tz("Asia/Kolkata").format("DD/MM/YYYY || HH:mm:ss");
+	const path2 = join(__dirname, "cache", "leaveGif", "randomgif");
+    if (!existsSync(path2)) mkdirSync(path2, { recursive: true });
 
-  const isKicked = author !== userID; // true = bhaga diya, false = khud bhag gaya
+    return;
+}
 
-  const bhagaGayaMsgs = [
-    `🦶 {name} ko bhaga diya gaya bhai! 😂\nGroup ka bardaasht level cross kar diya tha 🤣\n🕓 {time}`,
-    `💼 {name} ne last warning ke baad exit le liya... Bhaga diya gaya! 😬\n🕙 {time}`,
-    `🚨 {name} ka contract terminate kar diya gaya hai group se 😭\n⏰ {time}`,
-    `👣 {name} ne kuch zyada hi swag dikhaya... bhaga diya gaya 🤣\n📆 {time}`
-  ];
+module.exports.run = async function({ api, event, Users, Threads }) {
+	if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) return;
+	const { createReadStream, existsSync, mkdirSync, readdirSync } = global.nodemodule["fs-extra"];
+	const { join } =  global.nodemodule["path"];
+	const { threadID } = event;
+  const moment = require("moment-timezone");
+  const time = moment.tz("Asia/Kolkata").format("DD/MM/YYYY || HH:mm:s");
+  const hours = moment.tz("Asia/Kolkata").format("HH");
+	const data = global.data.threadData.get(parseInt(threadID)) || (await Threads.getData(threadID)).data;
+	const name = global.data.userName.get(event.logMessageData.leftParticipantFbId) || await Users.getNameUser(event.logMessageData.leftParticipantFbId);
+	const type = (event.author == event.logMessageData.leftParticipantFbId) ? "leave" : "managed";
+	const path = join(__dirname, "events", "123.mp4");
+	const pathGif = join(path, `${threadID}123.mp4`);
+	var msg, formPush
 
-  const khudBhagGayaMsgs = [
-    `🏃‍♂️ {name} khud bhag gaya bhai! 😂\nGroup ka swag digest nahi ho paya lagta hai 😎\n🕒 {time}`,
-    `📤 {name} ne group ko alvida keh diya... Apne marzi se bhag gaya 😢\n🕞 {time}`,
-    `😔 {name} bola "Main toxic logon ke beech nahi reh sakta!" aur nikal gaya\n🕚 {time}`,
-    `🥲 {name} ka man bhar gaya... Khud nikal liya 😩\n⏱ {time}`
-  ];
+	if (existsSync(path)) mkdirSync(path, { recursive: true });
 
-  const messages = isKicked ? bhagaGayaMsgs : khudBhagGayaMsgs;
-  const msg = messages[Math.floor(Math.random() * messages.length)]
-    .replace(/\{name}/g, name)
-    .replace(/\{time}/g, time);
+(typeof data.customLeave == "undefined") ? msg = "[⚜️] 👉🏻👉🏻 {name} 👈🏻👈🏻▬▬▬▬ KO Bhaga diya  .... {type}  [⚜️]\n😒😒\n🌺🌸🌺 🙏🏻 👉🏻👉🏻👉🏻 {name} 👈🏻👈🏻 ●▬▬▬▬๑۩۩BEHTI HAWA SA THAA WO 😥 uDTI PATANG✨✨ SAA THAA WOO ♥ KAHA GAYA USE DHOONDHO🤔🤔🤔●▬▬▬▬๑۩ 🙏🏻💐<3😊💔\n\n[❤️‍🔥] 🖤🖤😥😥...Good {session} || {time}" : msg = data.customLeave;
+	msg = msg.replace(/\{name}/g, name).replace(/\{type}/g, type).replace(/\{session}/g, hours <= 10 ? "𝙈𝙤𝙧𝙣𝙞𝙣𝙜" : 
+    hours > 10 && hours <= 12 ? "𝘼𝙛𝙩𝙚𝙧𝙉𝙤𝙤𝙣" :
+    hours > 12 && hours <= 18 ? "𝙀𝙫𝙚𝙣𝙞𝙣𝙜" : "𝙉𝙞𝙜𝙝𝙩").replace(/\{time}/g, time);  
 
-  const imgurLinks = [
-    "https://i.imgur.com/fZjW9Ue.gif",
-    "https://i.imgur.com/0TbfMzL.mp4",
-    "https://i.imgur.com/9dfSHHO.gif",
-    "https://i.imgur.com/WEXE6Vi.gif",
-    "https://i.imgur.com/nVLwHgN.mp4"
-  ];
+	const randomPath = readdirSync(join(__dirname, "cache", "leaveGif", "randomgif"));
 
-  const chosen = imgurLinks[Math.floor(Math.random() * imgurLinks.length)];
-  const ext = path.extname(chosen);
-  const tempPath = path.join(__dirname, `temp_leave${ext}`);
-
-  let form;
-  try {
-    const res = await axios.get(chosen, { responseType: "arraybuffer" });
-    fs.writeFileSync(tempPath, res.data);
-    form = {
-      body: msg,
-      attachment: fs.createReadStream(tempPath)
-    };
-  } catch (err) {
-    console.error("❌ Media download failed:", err.message);
-    form = { body: msg };
-  }
-
-  api.sendMessage(form, threadID, () => {
-    if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-  });
-};
+	if (existsSync(pathGif)) formPush = { body: msg, attachment: createReadStream(pathGif) }
+	else if (randomPath.length != 0) {
+		const pathRandom = join(__dirname, "cache", "leaveGif", "randomgif",`${randomPath[Math.floor(Math.random() * randomPath.length)]}`);
+		formPush = { body: msg, attachment: createReadStream(pathRandom) }
+	}
+	else formPush = { body: msg }
+	
+	return api.sendMessage(formPush, threadID);
+    }
