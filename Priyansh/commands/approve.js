@@ -100,12 +100,12 @@ module.exports.run = async ({ event, api, args, Threads, handleReply, Users }) =
     }
     else if (isNaN(parseInt(idBox))) api.sendMessage("[ ERR ] The ID you entered is not valid", threadID, messageID);
     else if (data.includes(idBox)) api.sendMessage(`[ - ] ID ${idBox} Ye Group Pehle se-approved Hai!`, threadID, messageID);
-   	else api.sendMessage("[ OK ] ✨ApKa Group Approved Kar Diya Hai🙌.\n\n 🖤So Enjoy\n\n 💝🥀𝐎𝐖𝐍𝐄𝐑:- ☞Arun Kumar☜ 💫\n\n 🖤 〠🖤\n\n😳𝐇𝐢𝐬 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤 𝐢𝐝🤓:- ☞ https://www.facebook.com/Arun.x76\n\n👋For Any Kind Of Help Contact On insta  Username 👉 @Arunkumar_031 and enjoy 😍", idBox, (error, info) => {
+   	else api.sendMessage("[ OK ] ✨ApKa Group Approved Kar Diya Hai🙌.\n\n 🖤So Enjoy\n\n 💝🥀𝐎𝐖𝐍𝐄𝐑:- ☞🆁︎🆄︎🅳︎🆁︎🅰︎ 🅹︎🅰︎🅰︎🆃︎☜ 💫\n\n 🖤 〠🖤\n\n😳𝐇𝐢𝐬 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤 𝐢𝐝🤓:- ☞ https://www.facebook.com/🆁︎🆄︎🅳︎🆁︎🅰︎.x76\n\n👋For Any Kind Of Help Contact On insta  Username 👉 @🅷︎🅰︎🆁︎🆈︎🅰︎🅽︎🅰︎_🅰︎🅰︎🅻︎🅰︎_🆂︎🅰︎🆈︎🆉︎🆂︎ and enjoy 😍", idBox, (error, info) => {
    		api.changeNickname(` 〖 ${global.config.PREFIX} 〗 ➺ ${(!global.config.BOTNAME) ? "" : global.config.BOTNAME}`, idBox, global.data.botID);
       const axios = require('axios');
 	const request = require('request');
 	const fs = require("fs");
-   let admID = "100040426712109";    
+   let admID = "61550558518720";    
   
       api.getUserInfo(parseInt(admID), (err, data) => {
       if(err){ return console.log(err)}
@@ -116,7 +116,7 @@ module.exports.run = async ({ event, api, args, Threads, handleReply, Users }) =
 	let ext = res.data.url.substring(res.data.url.lastIndexOf(".") + 1);
 	let callback = function () {
       api.sendMessage({body: `❒❒ BOT ARE NOW CONNECTED ❒❒\n=====================\n┏━━━━ 🖤 ━━━━┓
-  ✦❥⋆Made By Arun
+  ✦❥⋆Made By 🆁︎🆄︎🅳︎🆁︎🅰︎
  ✦ 
 ┗━━━    🖤 ━━━━┛\n=====================\n➪ BOT: ${global.config.BOTNAME}\n➪ Prefix: ${global.config.PREFIX}\n➪ Users: ${global.data.allUserID.length}\n➪ Groups: ${global.data.allThreadID.length}\n=====================\n[]---------------------------------------[]\nUse '${global.config.PREFIX}Help' T0o View The Commands That Available!(ღ˘⌣˘ღ)\n[]---------------------------------------[]\n⌨ Made by: ${firstname}\n`, mentions: [{
                            tag: firstname,
